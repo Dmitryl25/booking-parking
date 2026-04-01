@@ -2,10 +2,10 @@ import { useState } from "react";
 import { TextField, Button, Container, Typography, Box, Paper, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../api/axios';
+import { authApi } from '../api/index';
 
 const Login = () => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
@@ -19,23 +19,17 @@ const Login = () => {
 
         try {
             // Запрос
-            const response = await api.post('/auth/login', { username, password });
+            const response = await authApi.authLoginPost({ email: email, password: password });
 
             // Ответ
-            const { token, role } = response.data;
+            const { accessToken, refreshToken } = response.data;
 
             // Обновление глобального состояния
-            login(token, role);
-
-            // Навигация в зависимости от роли
-            if (role === 'ADMIN') {
-                navigate('/admin/offices');
-            } else {
-                navigate('/user/bookings');
-            }
+            login(accessToken, refreshToken);
+            navigate('/');
         } catch (err) {
             console.error("Ошибка при входе: ", err)
-            setError('Неверный логин и/или пароль');
+            setError('Неверный email и/или пароль');
         }
     }
 
@@ -54,9 +48,9 @@ const Login = () => {
                         margin="normal"
                         fullWidth
                         required 
-                        label='Логин'
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        label='Email'
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         />
 
                         <TextField

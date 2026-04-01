@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
+// import Header from './components/Header';
 
 // Временные компоненты
 const AdminOffices = () => <div>Страница админа</div>;
@@ -22,28 +23,36 @@ function App() {
         <Routes>
           <Route path='/login' element={<Login />} />
 
-          {/* Маршруты администратора */}
-          <Route 
-          path='/admin/offices'
-          element={
-            <ProtectedRoute allowedRole='ADMIN'>
-              <AdminOffices />
-            </ProtectedRoute>
-          } 
-          />
+          <Route path='*' element={
+            <>
+              {/* <Header /> */}
+              <Routes>
+                {/* Маршруты администратора */}
+                <Route 
+                path='/admin/offices'
+                element={
+                  <ProtectedRoute allowedRole='ADMIN'>
+                    <AdminOffices />
+                  </ProtectedRoute>
+                } 
+                />
 
-          {/* Маршруты пользователя */}
-          <Route
-          path='/user/bookings'
-          element={
-            <ProtectedRoute allowedRole='USER'>
-              <UserBookings />
-            </ProtectedRoute>
-          }
-          />
+                {/* Маршруты пользователя */}
+                <Route
+                path='/user/bookings'
+                element={
+                  <ProtectedRoute allowedRole='USER'>
+                    <UserBookings />
+                  </ProtectedRoute>
+                }
+                />
 
-          {/* Редирект с главной страницы на логин */}
-          <Route path='/' element={<Navigate to='/login' />} />
+                {/* Редирект с главной страницы на логин */}
+                <Route path='/' element={<Navigate to='/login' />} />
+              </Routes>
+            </>
+          }>
+          </Route>
         </Routes>
       </BrowserRouter>
     </AuthProvider>
