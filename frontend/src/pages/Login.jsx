@@ -4,6 +4,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../api/index';
+import { jwtDecode } from "jwt-decode";
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -33,7 +34,15 @@ const Login = () => {
             
             // Обновление глобального состояния
             login(accessToken, refreshToken);
-            navigate('/');
+
+            // Навигация пользователя
+            const decoded = jwtDecode(accessToken);
+            const role = decoded.role;
+            if (role.includes('ADMIN')) {
+                navigate('/admin/offices');
+            } else {
+                navigate('/user/bookings');
+            }
         } catch (err) {
             console.error("Ошибка при входе: ", err)
             setError('Неверный email и/или пароль');
