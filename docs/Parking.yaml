@@ -1,0 +1,745 @@
+openapi: 3.0.3
+info:
+  title: Parking Booking API
+  version: 1.0.0
+  description: API for parking booking system
+
+servers:
+  - url: http://localhost:8080/api
+
+tags:
+  - name: Auth
+    description: Аутентификация и авторизация
+  - name: User
+    description: Пользовательские эндпоинты (доступны всем авторизованным пользователям)
+  - name: Admin
+    description: Административные эндпоинты (только для администраторов)
+  - name: Common
+    description: Эндпоинты, доступные всем
+
+paths:
+  # Эндпоинты для авторизации и рефреша
+  /auth/login:
+    post:
+      summary: Login user or admin
+      description: Аутентификация пользователя или администратора по email и паролю. Возвращает access и refresh токены для последующих запросов и роль пользователя.
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [access_token, refresh_token]
+                properties:
+                  access_token:
+                    type: string
+                    description: JWT токен для доступа к защищенным ресурсам
+                  refresh_token:
+                    type: string
+                    description: JWT токен для обновления access токена
+        '401':
+          description: Invalid credentials
+  
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      description: Обновление access токена с использованием refresh токена. Возвращает новую пару токенов.
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+                  description: Refresh токен, полученный при авторизации
+      responses:
+        '200':
+          description: Tokens refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [access_token, refresh_token]
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+        '400':
+          description: Пропущен рефреш-токен или передан null 
+        '401':
+          description: Неверный или истекший рефреш-токен
+
+  # Эндпоинты для пользователя и администратора
+  /offices:
+    get:
+      summary: Get offices
+      description: Получение списка всех офисов.
+      tags: [Common]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Offices list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    address:
+                      type: string
+        '401':
+          description: Unauthorized
+
+  /offices/{officeId}/categories:
+    get:
+      summary: Get categories
+      description: Получение списка категорий парковочных мест для указанного офиса.
+      tags: [Common]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: officeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+        '401':
+          description: Unauthorized
+        '404':
+          description: Office not found
+
+
+  # Эндпоинты для пользователя
+  /bookings/search:
+    post:
+      summary: Search available parking
+      description: Поиск свободных парковочных мест в указанном офисе на заданный период времени.
+      tags: [User]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [officeId, startTime, endTime]
+              properties:
+                officeId:
+                  type: integer
+                startTime:
+                  type: string
+                  format: date-time
+                endTime:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Available spots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    spotId:
+                      type: integer
+                    number:
+                      type: string
+                    category:
+                      type: string
+        '400':
+          description: Invalid date range
+        '401':
+          description: Unauthorized
+        '404':
+          description: Office not found
+
+  /bookings:
+    post:
+      summary: Create booking
+      description: Создание бронирования парковочного места на указанное время. Пользователь определяется по JWT токену.
+      tags: [User]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [spotId, startTime, endTime]
+              properties:
+                spotId:
+                  type: integer
+                startTime:
+                  type: string
+                  format: date-time
+                endTime:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Invalid request (endTime before startTime)
+        '401':
+          description: Unauthorized
+        '404':
+          description: Spot not found
+        '409':
+          description: Spot already booked for this time
+
+  /bookings/my:
+    get:
+      summary: Get my bookings
+      description: Получение списка бронирований текущего авторизованного пользователя.
+      tags: [User]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Booking list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    spotNumber:
+                      type: string
+                    office:
+                      type: string
+                    category:
+                      type: string
+                    startTime:
+                      type: string
+                      format: date-time
+                    endTime:
+                      type: string
+                      format: date-time
+        '401':
+          description: Unauthorized
+
+  /bookings/{id}:
+    delete:
+      summary: Cancel booking
+      description: Отмена бронирования. Пользователь может отменить только свои бронирования.
+      tags: [User]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Cancelled
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (booking belongs to another user)
+        '404':
+          description: Booking not found
+
+
+
+  # Эндпоинты для админа
+  /admin/users:
+    post:
+      summary: Create user
+      description: Создание нового пользователя. Пароль генерируется автоматически.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, name, licensePlate]
+              properties:
+                email:
+                  type: string
+                  format: email
+                name:
+                  type: string
+                licensePlate:
+                  type: string
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  licensePlate:
+                    type: string
+                  email:
+                    type: string
+                    format: email
+                  password:
+                    type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '409':
+          description: User with this email already exists
+
+    get:
+      summary: Get all users
+      description: Получение списка всех зарегистрированных пользователей. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    email:
+                      type: string
+                      format: email
+                    name:
+                      type: string
+                    licensePlate:
+                      type: string
+        '401':
+          description: Unauthorized
+
+  /admin/users/{id}:
+    put:
+      summary: Update user
+      description: Обновление информации о пользователе. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                licensePlate:
+                  type: string
+      responses:
+        '200':
+          description: Updated
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: User not found
+
+    delete:
+      summary: Delete user
+      description: Удаление пользователя из системы. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: User not found
+
+  /admin/users/{id}/reset-password:
+    post:
+      summary: Reset user password
+      description: Сброс пароля пользователя. Генерируется новый пароль и возвращается администратору.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  newPassword:
+                    type: string
+                    description: Сгенерированный новый пароль
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: User not found
+
+  /admin/offices:
+    post:
+      summary: Create office
+      description: Создание нового офиса. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address]
+              properties:
+                address:
+                  type: string
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '409':
+          description: Office with this address already exists
+
+  /admin/offices/{id}:
+    put:
+      summary: Update office
+      description: Обновление адреса офиса. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address]
+              properties:
+                address:
+                  type: string
+      responses:
+        '200':
+          description: Updated
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Office not found
+
+    delete:
+      summary: Delete office
+      description: Удаление офиса. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Office not found
+
+  /admin/offices/{officeId}/categories:
+    post:
+      summary: Create category
+      description: Создание новой категории парковочных мест для указанного офиса. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: officeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Office not found
+        '409':
+          description: Category already exists in this office
+
+  /admin/categories/{id}:
+    delete:
+      summary: Delete category
+      description: Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Category not found
+
+  /admin/parking-spots:
+    post:
+      summary: Create parking spot
+      description: Создание нового парковочного места. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [number, categoryId, officeId]
+              properties:
+                number:
+                  type: string
+                categoryId:
+                  type: integer
+                officeId:
+                  type: integer
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Office or category not found
+        '409':
+          description: Spot with such number already exists in this office
+
+  /admin/offices/{officeId}/parking-spots:
+    get:
+      summary: Get parking spots
+      description: Получение списка всех парковочных мест в указанном офисе. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: officeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Parking spots list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    number:
+                      type: string
+                    category:
+                      type: string
+                    available:
+                      type: boolean
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Office not found
+
+  /admin/parking-spots/{id}:
+    delete:
+      summary: Delete parking spot
+      description: Удаление парковочного места. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Spot not found
+  
+  /admin/parking-spots/{id}/status:
+    patch:
+      summary: Update parking spot status
+      description: Изменение статуса парковочного места (доступно/заблокировано). Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID парковочного места
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [available]
+              properties:
+                available:
+                  type: boolean
+                  description: true - место доступно для бронирования, false - место заблокировано
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  number:
+                    type: string
+                  available:
+                    type: boolean
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Spot not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
