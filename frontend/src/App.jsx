@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
-// import Header from './components/Header';
+import Header from './components/Header';
+import UserBookings from './pages/user/UserBookings';
 
 // Временные компоненты
 const AdminOffices = () => <div>Страница админа</div>;
-const UserBookings = () => <div>Страница пользователя</div>;
 
 const ProtectedRoute = ({ children, allowedRole }) => {
   const { user } = useAuth();
@@ -25,7 +25,7 @@ function App() {
 
           <Route path='*' element={
             <>
-              {/* <Header /> */}
+              <Header />
               <Routes>
                 {/* Маршруты администратора */}
                 <Route 
