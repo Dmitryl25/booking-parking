@@ -21,6 +21,11 @@ export const AuthProvider = ({ children }) => {
 
     // Функция входа: сохраняет данные в состояние и в браузер
     const login = (accessToken, refreshToken) => {
+        if (!accessToken || !refreshToken) {
+            console.error("Попытка логина с пустыми токенами");
+            return
+        }
+        
         const decoded = jwtDecode(accessToken);
         
         localStorage.setItem('accessToken', accessToken);
