@@ -21,10 +21,11 @@ export const AuthProvider = ({ children }) => {
 
     // Функция входа: сохраняет данные в состояние и в браузер
     const login = (accessToken, refreshToken) => {
+        const decoded = jwtDecode(accessToken);
+        
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
 
-        const decoded = jwtDecode(accessToken);
         setUser({ token: accessToken, role: decoded.role });
     }
 
