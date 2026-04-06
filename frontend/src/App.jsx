@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Header from './components/Header';
 import UserBookings from './pages/user/UserBookings';
+import BookingPage from './pages/user/BookingPage';
 
 // Временные компоненты
 const AdminOffices = () => <div>Страница админа</div>;
@@ -43,6 +44,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRole='ROLE_USER'>
                     <UserBookings />
+                  </ProtectedRoute>
+                }
+                />
+                <Route
+                path='/user/booking'
+                element={
+                  <ProtectedRoute allowedRole='ROLE_USER'>
+                    <BookingPage />
                   </ProtectedRoute>
                 }
                 />

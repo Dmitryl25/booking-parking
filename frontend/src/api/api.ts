@@ -124,6 +124,7 @@ export interface BookingsSearchPost200ResponseInner {
 }
 export interface BookingsSearchPostRequest {
     'officeId': number;
+    'categoryId'?: number;
     'startTime': string;
     'endTime': string;
 }
