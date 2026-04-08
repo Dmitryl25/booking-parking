@@ -4,6 +4,5 @@ import lombok.Data;
 
 @Data
 public class SpotResponse {
-    private Long spotId;
     private String number;
 }

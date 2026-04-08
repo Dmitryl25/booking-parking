@@ -50,10 +50,12 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         // Обработка 401 (не авторизован)
                         .authenticationEntryPoint((request, response, authException) -> {
-                                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);})
+                                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        })
 
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
-                                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);}))
+                                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        }))
 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(auth -> auth

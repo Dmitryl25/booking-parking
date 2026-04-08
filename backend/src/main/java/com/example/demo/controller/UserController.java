@@ -34,6 +34,7 @@ public class UserController {
 
     @GetMapping("/bookings/search")
     public ResponseEntity<?> getFreeSpot(@RequestBody SpotRequest spotRequest) {
+
         List<SpotResponse> spots;
         try{
             spots = bookingService.getFreeSpots(spotRequest);
@@ -41,12 +42,12 @@ public class UserController {
         catch (IllegalArgumentException e) {
             com.example.demo.dto.Error error = new Error();
             error.setMessage("Invalid date range");
-            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Invalid date range", HttpStatus.BAD_REQUEST);
         }
         catch (RuntimeException e) {
             com.example.demo.dto.Error error = new Error();
             error.setMessage("Office not found");
-            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Office not found", HttpStatus.NOT_FOUND);
         }
         return ResponseEntity.ok(spots);
     }
@@ -62,16 +63,16 @@ public class UserController {
             if (e.getMessage().equals("Spot not found")) {
                 com.example.demo.dto.Error error = new Error();
                 error.setMessage("Spot not found");
-                return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>("Spot not found", HttpStatus.NOT_FOUND);
             }
             com.example.demo.dto.Error error = new Error();
             error.setMessage("Invalid request (endTime before startTime)");
-            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Invalid request (endTime before startTime)", HttpStatus.BAD_REQUEST);
         }
         catch (RuntimeException e) {
             com.example.demo.dto.Error error = new Error();
             error.setMessage("Spot already booked for this time");
-            return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+            return new ResponseEntity<>("Spot already booked for this time", HttpStatus.CONFLICT);
         }
         com.example.demo.dto.Error error = new Error();
         error.setMessage("Created");
