@@ -33,7 +33,7 @@ public class UserController {
 
 
     @GetMapping("/bookings/search")
-    private ResponseEntity<?> getFreeSpot(@RequestBody SpotRequest spotRequest) {
+    public ResponseEntity<?> getFreeSpot(@RequestBody SpotRequest spotRequest) {
         List<SpotResponse> spots;
         try{
             spots = bookingService.getFreeSpots(spotRequest);
@@ -52,7 +52,7 @@ public class UserController {
     }
 
     @PostMapping("/bookings")
-    private ResponseEntity<?> Booking(@RequestBody BookingCreateRequest spotRequest, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> Booking(@RequestBody BookingCreateRequest spotRequest, @AuthenticationPrincipal UserDetails userDetails) {
         Spot spot;
 
         try{
@@ -79,7 +79,7 @@ public class UserController {
     }
 
     @GetMapping("/bookings/my")
-    private ResponseEntity<?> getActiveBooking(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getActiveBooking(@AuthenticationPrincipal UserDetails userDetails) {
         List<GetBooking> spots = bookingService.getActiveBooking(userDetails.getUsername());
         return ResponseEntity.ok(spots);
     }
