@@ -20,6 +20,9 @@ public class Category {
     private String name;
 
     @Column(nullable = false)
+    private String spotsName;
+
+    @Column(nullable = false)
     private Integer spot_count;
 
     @ManyToOne

@@ -5,6 +5,7 @@ import com.example.demo.dto.*;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.Office;
 import com.example.demo.entity.Spot;
+import com.example.demo.entity.User;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.OfficeRepository;
 import com.example.demo.repository.SpotRepository;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -53,6 +55,7 @@ public class BookingService {
 
         Category cat = new Category();
         cat.setName(cat_view.getName());
+        cat.setSpotsName(cat_view.getSpotsName());
         cat.setSpot_count(cat_view.getSpot_count());
         cat.setOffice(officeRepository.findById(cat_view.getOffice_id()).get());
         catRepository.save(cat);
@@ -73,34 +76,62 @@ public class BookingService {
     }
 
     public List<SpotResponse> getFreeSpots(SpotRequest spotRequest) {
+        Long office_id = spotRequest.getOfficeId();
+        if (!officeRepository.existsById(office_id)) {
+            throw new RuntimeException("Office doesn't exists");
+        }
+        if (spotRequest.getEndTime().isBefore(spotRequest.getStartTime())){
+            throw new IllegalArgumentException("Invalid time range");
+        }
         Category cat = catRepository.getReferenceById(spotRequest.getCategoryId());
         Integer count = cat.getSpot_count();
+        Category category = catRepository.getReferenceById(spotRequest.getCategoryId());
         List<SpotResponse> spotResponses = new ArrayList<SpotResponse>();
+        String[] sp = {};
+        if (!category.getSpotsName().isEmpty()) {
+            sp = category.getSpotsName().split(" ");
+        }
         for (Integer i = 1; i < count + 1; i++) {
+            String spotNum = i.toString();
+            if (sp.length == count){
+                spotNum = sp[i];
+            }
             if (!spotRepository.existsSpotByParameters(spotRequest.getCategoryId(), spotRequest.getOfficeId(), i.toString())){
                 SpotResponse spot = new SpotResponse();
-                spot.setNumber(i.toString());
+                spot.setNumber(spotNum);
                 spotResponses.add(spot);
 
             }
             else if (!spotRepository.isSpotBookedBetween(spotRequest.getCategoryId(), spotRequest.getOfficeId(), i.toString(), spotRequest.getStartTime(), spotRequest.getEndTime())) {
                 SpotResponse spot = new SpotResponse();
-                spot.setNumber(i.toString());
+                spot.setNumber(spotNum);
                 spotResponses.add(spot);
             }
         }
         return spotResponses;
     }
 
-    public Spot createSpot(SpotCreateRequest spotRequest) {
-        if (spotRepository.existsSpotBy5Parameters(spotRequest.getCategoryId(), spotRequest.getOfficeId(), spotRequest.getSpot_number(), spotRequest.getStartTime(), spotRequest.getEndTime())){
-            throw new RuntimeException("Spot already exists");
+    public Spot createSpot(BookingCreateRequest spotRequest, String email) {
+        User user = userRepository.getReferenceByEmail(email);
+        Long user_id = user.getId();
+        Category category = catRepository.getReferenceById(spotRequest.getCategoryId());
+        List<String> sp = Arrays.asList(category.getSpotsName().split(" "));
+
+        if (spotRepository.isSpotBookedBetween(spotRequest.getCategoryId(), spotRequest.getOfficeId(), spotRequest.getNumber(), spotRequest.getStartTime(), spotRequest.getEndTime())){
+            throw new RuntimeException("Spot already booked");
+        }
+        if (spotRequest.getEndTime().isBefore(spotRequest.getStartTime())){
+            throw new IllegalArgumentException("Invalid time range");
+        }
+
+        if (!sp.contains(spotRequest.getNumber())){
+            throw new IllegalArgumentException("Spot not found");
         }
         Spot spot = new Spot();
-        spot.setSpot_number(spotRequest.getSpot_number());
+        spot.setSpot_number(spotRequest.getNumber());
         spot.setCategory(catRepository.getReferenceById(spotRequest.getCategoryId()));
         spot.setOffice(officeRepository.getReferenceById(spotRequest.getOfficeId()));
-        spot.setUser(userRepository.getReferenceById(spotRequest.getUserId()));
+        spot.setUser(userRepository.getReferenceById(user_id));
         spot.setStart(spotRequest.getStartTime());
         spot.setFinish(spotRequest.getEndTime());
         return  spotRepository.save(spot);

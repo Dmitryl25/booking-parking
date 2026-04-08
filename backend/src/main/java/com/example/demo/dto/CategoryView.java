@@ -7,6 +7,7 @@ import javax.persistence.Column;
 @Getter
 public class CategoryView {
     private String name;
+    private String spotsName;
     private Integer spot_count;
     private Long office_id;
 }

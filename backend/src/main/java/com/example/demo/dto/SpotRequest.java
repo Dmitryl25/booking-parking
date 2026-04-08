@@ -6,7 +6,6 @@ import java.time.ZonedDateTime;
 
 @Data
 public class SpotRequest {
-
     private Long officeId;
     private Long categoryId;
     private ZonedDateTime startTime;

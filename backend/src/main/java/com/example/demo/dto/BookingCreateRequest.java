@@ -5,12 +5,10 @@ import lombok.Data;
 import java.time.ZonedDateTime;
 
 @Data
-public class SpotCreateRequest {
-    private String spot_number;
-    private Long userId;
+public class BookingCreateRequest {
     private Long officeId;
     private Long categoryId;
+    private String number;
     private ZonedDateTime startTime;
     private ZonedDateTime endTime;
-
 }

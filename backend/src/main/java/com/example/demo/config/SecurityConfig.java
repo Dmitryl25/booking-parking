@@ -18,6 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.List;
 
@@ -46,11 +47,19 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // ← ДОБАВИТЬ ЭТУ СТРОКУ
                 .csrf(csrf -> csrf.disable())
+                .exceptionHandling(exceptions -> exceptions
+                        // Обработка 401 (не авторизован)
+                        .authenticationEntryPoint((request, response, authException) -> {
+                                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);})
+
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);}))
+
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(auth -> auth
                         .antMatchers("/api/auth/**").permitAll()
-                        .antMatchers("/api/user/public").permitAll()
                         .antMatchers("/api/admin/**").hasRole("ADMIN")
+                        .antMatchers("/api/user/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions().disable())

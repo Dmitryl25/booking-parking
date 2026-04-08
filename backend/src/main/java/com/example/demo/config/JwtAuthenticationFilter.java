@@ -1,5 +1,6 @@
 package com.example.demo.config;
 
+import com.example.demo.entity.User;
 import com.example.demo.service.UserDetailsServiceImpl;
 import com.example.demo.util.JwtUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

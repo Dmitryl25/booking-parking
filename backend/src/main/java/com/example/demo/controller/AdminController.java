@@ -61,9 +61,6 @@ public class AdminController {
             }
         }
 
-        return new ResponseEntity<>(cat, HttpStatus.CREATED);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
-
-
-
 }
