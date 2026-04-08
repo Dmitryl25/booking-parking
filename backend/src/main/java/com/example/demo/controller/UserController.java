@@ -1,8 +1,7 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.BookingCreateRequest;
-import com.example.demo.dto.SpotRequest;
-import com.example.demo.dto.SpotResponse;
+import com.example.demo.dto.*;
+import com.example.demo.dto.Error;
 import com.example.demo.entity.Spot;
 import com.example.demo.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,22 +33,26 @@ public class UserController {
 
 
     @GetMapping("/bookings/search")
-    private ResponseEntity<List<SpotResponse>> getFreeSpot(@RequestBody SpotRequest spotRequest) {
+    private ResponseEntity<?> getFreeSpot(@RequestBody SpotRequest spotRequest) {
         List<SpotResponse> spots;
         try{
             spots = bookingService.getFreeSpots(spotRequest);
         }
         catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            com.example.demo.dto.Error error = new Error();
+            error.setMessage("Invalid date range");
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
         catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            com.example.demo.dto.Error error = new Error();
+            error.setMessage("Office not found");
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
         return ResponseEntity.ok(spots);
     }
 
     @PostMapping("/bookings")
-    private ResponseEntity<Long> Booking(@RequestBody BookingCreateRequest spotRequest, @AuthenticationPrincipal UserDetails userDetails) {
+    private ResponseEntity<?> Booking(@RequestBody BookingCreateRequest spotRequest, @AuthenticationPrincipal UserDetails userDetails) {
         Spot spot;
 
         try{
@@ -57,13 +60,27 @@ public class UserController {
         }
         catch (IllegalArgumentException e) {
             if (e.getMessage().equals("Spot not found")) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                com.example.demo.dto.Error error = new Error();
+                error.setMessage("Spot not found");
+                return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
             }
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            com.example.demo.dto.Error error = new Error();
+            error.setMessage("Invalid request (endTime before startTime)");
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
         catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            com.example.demo.dto.Error error = new Error();
+            error.setMessage("Spot already booked for this time");
+            return new ResponseEntity<>(error, HttpStatus.CONFLICT);
         }
-        return new ResponseEntity<>(spot.getId(), HttpStatus.CREATED);
+        com.example.demo.dto.Error error = new Error();
+        error.setMessage("Created");
+        return new ResponseEntity<>(error, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/bookings/my")
+    private ResponseEntity<?> getActiveBooking(@AuthenticationPrincipal UserDetails userDetails) {
+        List<GetBooking> spots = bookingService.getActiveBooking(userDetails.getUsername());
+        return ResponseEntity.ok(spots);
     }
 }

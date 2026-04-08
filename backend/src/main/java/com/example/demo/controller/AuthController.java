@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.Error;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.AuthResponse;
 import com.example.demo.dto.RefreshTokenRequest;
@@ -25,28 +26,34 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         AuthResponse ans;
         try{
             ans =  authService.login(request);
         }
         catch (RuntimeException e){
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            Error error = new Error();
+            error.setMessage("Invalid credentials");
+            return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
         }
         return ResponseEntity.ok(ans);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequest request) {
         AuthResponse ans;
         try{
             ans =  authService.refreshToken(request);
             if (isNull(ans.getRefreshToken()) || ans.getRefreshToken().isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                Error error = new Error();
+                error.setMessage("Пропущен рефреш-токен или передан null");
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
             }
         }
         catch (RuntimeException e){
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            Error error = new Error();
+            error.setMessage("Неверный или истекший рефреш-токен");
+            return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
         }
         return ResponseEntity.ok(ans);
     }

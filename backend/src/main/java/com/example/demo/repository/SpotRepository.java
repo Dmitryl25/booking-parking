@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.entity.Category;
 import com.example.demo.entity.Office;
 import com.example.demo.entity.Spot;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Repository
 public interface SpotRepository extends JpaRepository<Spot, Long> {
@@ -54,5 +56,15 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("categoryId") Long catId,
             @Param("officeId") Long officeId,
             @Param("spot_number") String spot_number
+    );
+
+
+    @Query("SELECT s " +
+            "FROM Spot s " +
+            "WHERE s.user.id = :userId " +
+            "AND s.finish < :data ")
+    List<Spot> findByUser_id(
+            @Param("userId") Long userId,
+            @Param("data") ZonedDateTime data
     );
 }

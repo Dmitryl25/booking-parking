@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.Error;
+import com.example.demo.dto.GetCategory;
 import com.example.demo.dto.OfficeView;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.Office;
@@ -9,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -23,15 +27,23 @@ public class GeneralController {
     }
 
     @GetMapping("/offices/{officeId}/categories")
-    public ResponseEntity<List<Category>> getAllOfficeCategory(@PathVariable("officeId") Long officeId) {
-        List<Category> category;
+    public ResponseEntity<?> getAllOfficeCategory(@PathVariable("officeId") Long officeId) {
+        List<GetCategory> ans = new ArrayList<GetCategory>();
 
         try{
-            category = bookingService.getAllCategoryOffice(officeId);
+            List<Category> category = bookingService.getAllCategoryOffice(officeId);
+            for(Category c : category){
+                GetCategory getCategory = new GetCategory();
+                getCategory.setId(c.getId());
+                getCategory.setName(c.getName());
+                ans.add(getCategory);
+            }
         }
         catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            com.example.demo.dto.Error error = new Error();
+            error.setMessage("Office not found");
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
-        return ResponseEntity.ok(category);
+        return ResponseEntity.ok(ans);
     }
 }

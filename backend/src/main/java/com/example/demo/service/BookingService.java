@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,12 +45,12 @@ public class BookingService {
         return office;
     }
 
-    public Category createCategory(CategoryView cat_view) {
-        if (catRepository.existsByNameAndOfficeId(cat_view.getName(), cat_view.getOffice_id())) {
+    public Category createCategory(CategoryView cat_view, Long officeId) {
+        if (catRepository.existsByNameAndOfficeId(cat_view.getName(), officeId)) {
             throw new RuntimeException("Category already exists");
         }
 
-        if (!officeRepository.existsById(cat_view.getOffice_id())) {
+        if (!officeRepository.existsById(officeId)) {
             throw new RuntimeException("Office not found");
         }
 
@@ -57,7 +58,7 @@ public class BookingService {
         cat.setName(cat_view.getName());
         cat.setSpotsName(cat_view.getSpotsName());
         cat.setSpot_count(cat_view.getSpot_count());
-        cat.setOffice(officeRepository.findById(cat_view.getOffice_id()).get());
+        cat.setOffice(officeRepository.findById(officeId).get());
         catRepository.save(cat);
         return cat;
     }
@@ -135,5 +136,24 @@ public class BookingService {
         spot.setStart(spotRequest.getStartTime());
         spot.setFinish(spotRequest.getEndTime());
         return  spotRepository.save(spot);
+    }
+
+    public List<GetBooking> getActiveBooking(String email) {
+        User user = userRepository.getReferenceByEmail(email);
+        Long user_id = user.getId();
+        List<Spot> spots = spotRepository.findByUser_id(user_id, ZonedDateTime.now());
+        List<GetBooking> ans = new ArrayList<>();
+        for (Spot spot : spots) {
+            GetBooking getBooking = new GetBooking();
+            getBooking.setId(spot.getId());
+            getBooking.setOffice(spot.getOffice().getAddress());
+            getBooking.setCategory(spot.getCategory().getName());
+            getBooking.setSpotNumber(spot.getSpot_number());
+            getBooking.setEndTime(spot.getFinish());
+            getBooking.setStartTime(spot.getStart());
+            ans.add(getBooking);
+
+        }
+        return ans;
     }
 }

@@ -47,10 +47,10 @@ public class AdminController {
     }
 
     @PostMapping("/offices/{officeId}/categories")
-    public ResponseEntity<Category> createCategory(@RequestBody CategoryView catView) {
+    public ResponseEntity<Category> createCategory(@RequestBody CategoryView catView, @PathVariable("officeId") Long officeId) {
         Category cat;
         try{
-            cat = bookingService.createCategory(catView);
+            cat = bookingService.createCategory(catView, officeId);
         }
         catch (RuntimeException e) {
             if (e.getMessage().equals("Office not found")) {
