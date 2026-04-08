@@ -8,7 +8,7 @@ import { userApi } from "../../api/index";
 import { Link } from 'react-router-dom';
 
 const UserBookings = () => {
-    const [ bookings, setBookings ] = useState([]);
+    const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -38,11 +38,6 @@ const UserBookings = () => {
         const e = new Date(end).toLocaleTimeString([], options);
         return `${s} — ${e}`;
     };
-
-    // Отмена бронирования
-    const canCancel = (startTime) => {
-        return new Date(startTime) > new Date();
-    }
 
     const handleCancel = async (id) => {
         if (window.confirm("Вы уверены, что хотите отменить бронирование?")) {
@@ -126,22 +121,20 @@ const UserBookings = () => {
                                 </Grid>
 
                                 {/* Нижняя часть: Кнопка */}
-                                {canCancel(booking.startTime) && (
-                                    <>
-                                        <Divider sx={{ my: 1.5, borderStyle: 'dashed' }} />
-                                        <Box display="flex" justifyContent="flex-end">
-                                            <Button 
-                                                size="small" 
-                                                color="error" 
-                                                startIcon={<DeleteOutlineIcon />}
-                                                onClick={() => handleCancel(booking.id)}
-                                                sx={{ fontWeight: 600, textTransform: 'none' }}
-                                            >
-                                            Отменить запись
-                                            </Button>
-                                        </Box>
-                                    </>
-                                )}
+                                <>
+                                    <Divider sx={{ my: 1.5, borderStyle: 'dashed' }} />
+                                    <Box display="flex" justifyContent="flex-end">
+                                        <Button 
+                                            size="small" 
+                                            color="error" 
+                                            startIcon={<DeleteOutlineIcon />}
+                                            onClick={() => handleCancel(booking.id)}
+                                            sx={{ fontWeight: 600, textTransform: 'none' }}
+                                        >
+                                        Отменить запись
+                                        </Button>
+                                    </Box>
+                                </>
                             </Box>
                         </Card>
                     ))}
