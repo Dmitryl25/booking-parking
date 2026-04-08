@@ -24,7 +24,7 @@ const BookingPage = () => {
     });
 
     // Вспомогательные состояния
-    const [selectedSpotId, setSelectedSpotId] = useState(null);
+    const [selectedSpot, setSelectedSpot] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [searchDone, setSearchDone] = useState(false);
@@ -59,6 +59,7 @@ const BookingPage = () => {
             }
 
             fetchCategories();
+            setLoading(false);
         }
     }, [filters.officeId]);
 
@@ -66,7 +67,7 @@ const BookingPage = () => {
         const { name, value } = e.target;
         setFilters(prev => ({ ...prev, [name]: value }));
         setSearchDone(false); // Сброс результата при изменении фильтров
-        setSelectedSpotId(null);
+        setSelectedSpot(null);
     }
 
     // Поиск парковочных мест
@@ -106,7 +107,9 @@ const BookingPage = () => {
 
         try {
             await userApi.bookingsPost({
-                spotId: selectedSpotId,
+                officeId: filters.officeId,
+                categoryId: filters.categoryId,
+                number: selectedSpot,
                 startTime: startISO,
                 endTime: endISO
             })
@@ -200,17 +203,17 @@ const BookingPage = () => {
                         <>
                             <Grid container spacing={2}>
                                 {spots.map((spot) => (
-                                    <Grid size={{ xs: 4, sm: 3, md: 2 }} key={spot.spotId}>
+                                    <Grid size={{ xs: 4, sm: 3, md: 2 }} key={spot.number}>
                                         <Card
                                             variant="outlined"
                                             sx={{
                                                 borderRadius: 2,
-                                                border: selectedSpotId === spot.spotId ? '2px solid #1976d2' : '1px solid #e0e0e0',
-                                                bgcolor: selectedSpotId === spot.spotId ? '#e3f2fd' : 'inherit'
+                                                border: selectedSpot === spot.number ? '2px solid #1976d2' : '1px solid #e0e0e0',
+                                                bgcolor: selectedSpot === spot.number ? '#e3f2fd' : 'inherit'
                                             }}
                                         >
-                                            <CardActionArea onClick={() => setSelectedSpotId(spot.spotId)} sx={{ p: 2, textAlign: 'center' }}>
-                                                <DirectionsCarIcon color={selectedSpotId === spot.spotId ? "primary" : "action"} />
+                                            <CardActionArea onClick={() => setSelectedSpot(spot.number)} sx={{ p: 2, textAlign: 'center' }}>
+                                                <DirectionsCarIcon color={selectedSpot === spot.number ? "primary" : "action"} />
                                                 <Typography fontWeight="700">№{spot.number}</Typography>
                                             </CardActionArea>
                                         </Card>
@@ -218,7 +221,7 @@ const BookingPage = () => {
                                 ))}
                             </Grid>
 
-                            {selectedSpotId && (
+                            {selectedSpot && (
                                 <Box 
                                     sx={{ 
                                         position: 'fixed', 
@@ -243,7 +246,7 @@ const BookingPage = () => {
                                         sx={{ width: '100%', maxWidth: 'md' }}
                                     >
                                         <Typography variant="body1" sx={{ fontWeight: 600, flexGrow: 1 }}>
-                                            Выбрано: место №{spots.find(s => s.spotId === selectedSpotId)?.number}
+                                            Выбрано: место №{spots.find(s => s.spotId === selectedSpot)?.number}
                                             <Typography component="span" variant="caption" display="block" color="text.secondary">
                                                 {new Date(filters.date).toLocaleDateString()} | {filters.startTime} - {filters.endTime}
                                             </Typography>
