@@ -5,6 +5,7 @@ import com.example.demo.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -60,9 +61,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(auth -> auth
                         .antMatchers("/api/auth/**").permitAll()
-                        .antMatchers("/api/users").hasRole("ADMIN")
-                        .antMatchers("/api/offices").hasRole("ADMIN")
-                        .antMatchers("/api/offices/{officeId}/categories").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.POST, "/api/offices").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.POST, "/api/offices/{officeId}/categories").hasRole("ADMIN")
                         .antMatchers("/api/bookings/search").hasRole("USER")
                         .antMatchers("/api/bookings").hasRole("USER")
                         .antMatchers("/api/bookings/my").hasRole("USER")
