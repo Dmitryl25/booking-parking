@@ -32,7 +32,7 @@ public class UserController {
     }
 
 
-    @GetMapping("/bookings/search")
+    @PostMapping("/bookings/search")
     public ResponseEntity<?> getFreeSpot(@RequestBody SpotRequest spotRequest) {
 
         List<SpotResponse> spots;
