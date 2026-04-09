@@ -161,9 +161,11 @@ paths:
           application/json:
             schema:
               type: object
-              required: [officeId, startTime, endTime]
+              required: [officeId, categoryId, startTime, endTime]
               properties:
                 officeId:
+                  type: integer
+                categoryId:
                   type: integer
                 startTime:
                   type: string
@@ -181,11 +183,7 @@ paths:
                 items:
                   type: object
                   properties:
-                    spotId:
-                      type: integer
                     number:
-                      type: string
-                    category:
                       type: string
         '400':
           description: Invalid date range
@@ -207,10 +205,14 @@ paths:
           application/json:
             schema:
               type: object
-              required: [spotId, startTime, endTime]
+              required: [officeId, categoryId, number, startTime, endTime]
               properties:
-                spotId:
+                officeId:
                   type: integer
+                categoryId:
+                  type: integer
+                number:
+                  type: string
                 startTime:
                   type: string
                   format: date-time
@@ -302,7 +304,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [email, name, licensePlate]
+              required: [email, name, licensePlate, password]
               properties:
                 email:
                   type: string
@@ -311,25 +313,11 @@ paths:
                   type: string
                 licensePlate:
                   type: string
+                password:
+                  type: string
       responses:
         '201':
           description: User created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  name:
-                    type: string
-                  licensePlate:
-                    type: string
-                  email:
-                    type: string
-                    format: email
-                  password:
-                    type: string
         '401':
           description: Unauthorized
         '403':
@@ -364,6 +352,33 @@ paths:
                       type: string
         '401':
           description: Unauthorized
+  
+  /admin/generate-password:
+    post:
+      summary: Generate random password
+      description: Генерация случайного пароля на сервере
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content: {}
+      responses:
+        '200':
+          description: Password generated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [password]
+                properties:
+                  password:
+                    type: string
+                    description: Сгенерированный пароль
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
 
   /admin/users/{id}:
     put:
@@ -472,7 +487,16 @@ paths:
                   type: string
       responses:
         '201':
-          description: Created
+          description: Office created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  address:
+                    type: string
         '401':
           description: Unauthorized
         '403':
@@ -651,8 +675,6 @@ paths:
                 items:
                   type: object
                   properties:
-                    id:
-                      type: integer
                     number:
                       type: string
                     category:
@@ -666,7 +688,7 @@ paths:
         '404':
           description: Office not found
 
-  /admin/parking-spots/{id}:
+  /admin/offices/{officeId}/parking-spots/{number}:
     delete:
       summary: Delete parking spot
       description: Удаление парковочного места. Только для администратора.
@@ -674,11 +696,18 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - name: id
+        - name: officeId
           in: path
           required: true
           schema:
             type: integer
+          description: ID офиса
+        - name: number
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Номер парковочного места
       responses:
         '200':
           description: Deleted
@@ -688,46 +717,42 @@ paths:
           description: Forbidden (not admin)
         '404':
           description: Spot not found
-  
-  /admin/parking-spots/{id}/status:
-    patch:
-      summary: Update parking spot status
-      description: Изменение статуса парковочного места (доступно/заблокировано). Только для администратора.
+    post:
+      summary: Block parking spot temporarily
+      description: Временная блокировка парковочного места на указанный период. Только для администратора.
       tags: [Admin]
       security:
         - bearerAuth: []
       parameters:
-        - name: id
+        - name: officeId
           in: path
           required: true
           schema:
             type: integer
-          description: ID парковочного места
+          description: ID офиса
+        - name: number
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Номер парковочного места
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [available]
+              required: [startTime, endTime]
               properties:
-                available:
-                  type: boolean
-                  description: true - место доступно для бронирования, false - место заблокировано
+                startTime:
+                  type: string
+                  format: date-time
+                endTime:
+                  type: string
+                  format: date-time
       responses:
         '200':
           description: Status updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  number:
-                    type: string
-                  available:
-                    type: boolean
         '400':
           description: Invalid request
         '401':

@@ -14,11 +14,18 @@ const BookingPage = () => {
     const [categories, setCategories] = useState([]);
     const [spots, setSpots] = useState([]);
 
+    // Текущая дата пользователя
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const localToday = `${year}-${month}-${day}`;
+
     // Данные формы
     const [filters, setFilters] = useState({
         officeId: '',
         categoryId: '',
-        date: new Date().toISOString().split('T')[0], // Текущая дата
+        date: localToday, // Текущая дата
         startTime: '09:00',
         endTime: '18:00'
     });
@@ -75,8 +82,11 @@ const BookingPage = () => {
         setError(null);
         setLoading(true);
 
-        const startISO = `${filters.date}T${filters.startTime}:00`;
-        const endISO = `${filters.date}T${filters.endTime}:00`;
+        const start = new Date(`${filters.date}T${filters.startTime}:00`);
+        const end = new Date(`${filters.date}T${filters.endTime}:00`);
+
+        const startISO = start.toISOString();
+        const endISO = end.toISOString();
 
         if (new Date(startISO) >= new Date(endISO)) {
             setError("Время конца не может быть раньше или равно времени начала");
@@ -102,8 +112,11 @@ const BookingPage = () => {
 
     // Бронирование
     const handleBooking = async () => {
-        const startISO = `${filters.date}T${filters.startTime}:00`;
-        const endISO = `${filters.date}T${filters.endTime}:00`;
+        const start = new Date(`${filters.date}T${filters.startTime}:00`);
+        const end = new Date(`${filters.date}T${filters.endTime}:00`);
+
+        const startISO = start.toISOString();
+        const endISO = end.toISOString();
 
         try {
             await userApi.bookingsPost({
@@ -246,7 +259,7 @@ const BookingPage = () => {
                                         sx={{ width: '100%', maxWidth: 'md' }}
                                     >
                                         <Typography variant="body1" sx={{ fontWeight: 600, flexGrow: 1 }}>
-                                            Выбрано: место №{spots.find(s => s.spotId === selectedSpot)?.number}
+                                            Выбрано: место №{spots.find(s => s.number === selectedSpot)?.number}
                                             <Typography component="span" variant="caption" display="block" color="text.secondary">
                                                 {new Date(filters.date).toLocaleDateString()} | {filters.startTime} - {filters.endTime}
                                             </Typography>
