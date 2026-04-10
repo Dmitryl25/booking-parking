@@ -72,17 +72,17 @@ public class BookingService {
             return catRepository.findByOfficeId(office_id);
         }
         else{
-            throw new RuntimeException("Office doesn't exists");
+            throw new RuntimeException("Office not found");
         }
     }
 
     public List<SpotResponse> getFreeSpots(SpotRequest spotRequest) {
         Long office_id = spotRequest.getOfficeId();
         if (!officeRepository.existsById(office_id)) {
-            throw new RuntimeException("Office doesn't exists");
+            throw new RuntimeException("Office not found");
         }
         if (spotRequest.getEndTime().isBefore(spotRequest.getStartTime())){
-            throw new IllegalArgumentException("Invalid time range");
+            throw new IllegalArgumentException("Invalid date range");
         }
         Category cat = catRepository.getReferenceById(spotRequest.getCategoryId());
         Integer count = cat.getSpot_count();
@@ -95,7 +95,7 @@ public class BookingService {
         for (Integer i = 1; i < count + 1; i++) {
             String spotNum = i.toString();
             if (sp.length == count){
-                spotNum = sp[i];
+                spotNum = sp[i - 1];
             }
             if (!spotRepository.existsSpotByParameters(spotRequest.getCategoryId(), spotRequest.getOfficeId(), i.toString())){
                 SpotResponse spot = new SpotResponse();
@@ -119,10 +119,10 @@ public class BookingService {
         List<String> sp = Arrays.asList(category.getSpotsName().split(" "));
 
         if (spotRepository.isSpotBookedBetween(spotRequest.getCategoryId(), spotRequest.getOfficeId(), spotRequest.getNumber(), spotRequest.getStartTime(), spotRequest.getEndTime())){
-            throw new RuntimeException("Spot already booked");
+            throw new RuntimeException("Spot already booked for this time");
         }
         if (spotRequest.getEndTime().isBefore(spotRequest.getStartTime())){
-            throw new IllegalArgumentException("Invalid time range");
+            throw new IllegalArgumentException("Invalid request (endTime before startTime)");
         }
 
         if (!sp.contains(spotRequest.getNumber()) && sp.size() == category.getSpot_count()) {

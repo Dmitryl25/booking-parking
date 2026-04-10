@@ -31,21 +31,6 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("requestedEndTime") ZonedDateTime requestedEndTime
     );
 
-    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END " +
-            "FROM Spot s " +
-            "WHERE s.category.id = :categoryId " +
-            "AND s.office.id = :officeId " +
-            "AND s.spot_number = :spot_number " +
-            "AND s.start = :requestedEndTime " +
-            "AND s.finish = :requestedStartTime")
-    boolean existsSpotBy5Parameters(
-            @Param("categoryId") Long catId,
-            @Param("officeId") Long officeId,
-            @Param("spot_number") String spot_number,
-            @Param("requestedStartTime") ZonedDateTime requestedStartTime,
-            @Param("requestedEndTime") ZonedDateTime requestedEndTime
-    );
-
 
     @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END " +
             "FROM Spot s " +
@@ -62,7 +47,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
     @Query("SELECT s " +
             "FROM Spot s " +
             "WHERE s.user.id = :userId " +
-            "AND s.finish < :data ")
+            "AND s.finish > :data ")
     List<Spot> findByUser_id(
             @Param("userId") Long userId,
             @Param("data") ZonedDateTime data

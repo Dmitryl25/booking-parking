@@ -40,9 +40,7 @@ public class GeneralController {
             }
         }
         catch (RuntimeException e) {
-            com.example.demo.dto.Error error = new Error();
-            error.setMessage("Office not found");
-            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
         return ResponseEntity.ok(ans);
     }
