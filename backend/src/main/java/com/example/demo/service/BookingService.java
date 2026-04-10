@@ -125,7 +125,7 @@ public class BookingService {
             throw new IllegalArgumentException("Invalid time range");
         }
 
-        if (!sp.contains(spotRequest.getNumber())){
+        if (!sp.contains(spotRequest.getNumber()) && sp.size() == category.getSpot_count()) {
             throw new IllegalArgumentException("Spot not found");
         }
         Spot spot = new Spot();

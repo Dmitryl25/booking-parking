@@ -16,13 +16,13 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("api/")
+@RequestMapping("/api/")
 public class UserController {
 
     @Autowired
     private BookingService bookingService;
 
-    @GetMapping("/profile")
+    @GetMapping("profile")
     public Map<String, Object> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
         Map<String, Object> response = new HashMap<>();
         response.put("email", userDetails.getUsername());
@@ -32,7 +32,7 @@ public class UserController {
     }
 
 
-    @PostMapping("/bookings/search")
+    @PostMapping("bookings/search")
     public ResponseEntity<?> getFreeSpot(@RequestBody SpotRequest spotRequest) {
 
         List<SpotResponse> spots;
@@ -52,7 +52,7 @@ public class UserController {
         return ResponseEntity.ok(spots);
     }
 
-    @PostMapping("/bookings")
+    @PostMapping("bookings")
     public ResponseEntity<?> Booking(@RequestBody BookingCreateRequest spotRequest, @AuthenticationPrincipal UserDetails userDetails) {
         Spot spot;
 
@@ -79,7 +79,7 @@ public class UserController {
         return new ResponseEntity<>(error, HttpStatus.CREATED);
     }
 
-    @GetMapping("/bookings/my")
+    @GetMapping("bookings/my")
     public ResponseEntity<?> getActiveBooking(@AuthenticationPrincipal UserDetails userDetails) {
         List<GetBooking> spots = bookingService.getActiveBooking(userDetails.getUsername());
         return ResponseEntity.ok(spots);
