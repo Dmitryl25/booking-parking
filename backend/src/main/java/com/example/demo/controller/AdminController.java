@@ -1,11 +1,11 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.CategoryView;
-import com.example.demo.dto.OfficeView;
+import com.example.demo.dto.*;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.Office;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.service.AuthService;
 import com.example.demo.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,9 +28,46 @@ public class AdminController {
     @Autowired
     private BookingService bookingService;
 
-    @GetMapping("/users")
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    @Autowired
+    private AuthService authService;
+
+    @PostMapping("admin/users")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        try{
+            AuthResponse ans = authService.register(request);
+        }
+        catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>("User created", HttpStatus.CREATED);
+    }
+
+
+    @GetMapping("admin/users")
+    public ResponseEntity<List<UserView>> getAllUsers() {
+        return ResponseEntity.ok(bookingService.getAllUser());
+    }
+
+    @PutMapping("admin/users/{id}")
+    public ResponseEntity<?> updateUser(@RequestBody UpdateUser user, @PathVariable("id") Long id) {
+        try{
+            bookingService.updateUser(user, id);
+        }
+        catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>("updated", HttpStatus.OK);
+    }
+
+    @DeleteMapping("admin/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable("id") Long id) {
+        try{
+            bookingService.deleteUser(id);
+        }
+        catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
     }
 
     @PostMapping("/offices")

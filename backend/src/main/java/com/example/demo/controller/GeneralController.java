@@ -1,8 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.Error;
 import com.example.demo.dto.GetCategory;
-import com.example.demo.dto.OfficeView;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.Office;
 import com.example.demo.service.BookingService;
@@ -12,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @RestController

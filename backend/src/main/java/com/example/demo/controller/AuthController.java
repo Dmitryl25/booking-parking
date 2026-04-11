@@ -1,6 +1,5 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.Error;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.AuthResponse;
 import com.example.demo.dto.RefreshTokenRequest;
@@ -20,10 +19,6 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request));
-    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -32,9 +27,7 @@ public class AuthController {
             ans =  authService.login(request);
         }
         catch (RuntimeException e){
-            Error error = new Error();
-            error.setMessage("Invalid credentials");
-            return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
         }
         return ResponseEntity.ok(ans);
     }
@@ -45,15 +38,11 @@ public class AuthController {
         try{
             ans =  authService.refreshToken(request);
             if (isNull(ans.getRefreshToken()) || ans.getRefreshToken().isEmpty()) {
-                Error error = new Error();
-                error.setMessage("Пропущен рефреш-токен или передан null");
-                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("Пропущен рефреш-токен или передан null", HttpStatus.BAD_REQUEST);
             }
         }
         catch (RuntimeException e){
-            Error error = new Error();
-            error.setMessage("Неверный или истекший рефреш-токен");
-            return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("Неверный или истекший рефреш-токен", HttpStatus.UNAUTHORIZED);
         }
         return ResponseEntity.ok(ans);
     }

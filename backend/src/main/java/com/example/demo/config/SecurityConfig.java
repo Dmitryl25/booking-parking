@@ -60,13 +60,11 @@ public class SecurityConfig {
 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(auth -> auth
-                        .antMatchers("/api/auth/**").permitAll()
-                        .antMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                         .antMatchers(HttpMethod.POST, "/api/offices").hasRole("ADMIN")
                         .antMatchers(HttpMethod.POST, "/api/offices/{officeId}/categories").hasRole("ADMIN")
-                        .antMatchers("/api/bookings/search").hasRole("USER")
-                        .antMatchers("/api/bookings").hasRole("USER")
-                        .antMatchers("/api/bookings/my").hasRole("USER")
+                        .antMatchers("/api/auth/**").permitAll()
+                        .antMatchers("/api/admin/**").hasRole("ADMIN")
+                        .antMatchers("/api/bookings/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions().disable())

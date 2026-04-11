@@ -32,14 +32,14 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new RuntimeException("User with this email already exists");
         }
 
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setFullName(request.getFullName());
-        user.setCarNum(request.getNumCar());
+        user.setFullName(request.getName());
+        user.setCarNum(request.getLicensePlate());
 
         if (request.getRole() != null && !request.getRole().isEmpty()) {
             user.setRole(request.getRole());
@@ -65,7 +65,7 @@ public class AuthService {
         );
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
         String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole());
         String refreshToken = jwtUtil.generateRefreshToken(user.getEmail(), user.getRole());

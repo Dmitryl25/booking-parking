@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.*;
-import com.example.demo.dto.Error;
 import com.example.demo.entity.Spot;
 import com.example.demo.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,14 +64,25 @@ public class UserController {
         catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
-        com.example.demo.dto.Error error = new Error();
-        error.setMessage("Created");
-        return new ResponseEntity<>(error, HttpStatus.CREATED);
+        return new ResponseEntity<>("Created", HttpStatus.CREATED);
     }
 
     @GetMapping("bookings/my")
     public ResponseEntity<?> getActiveBooking(@AuthenticationPrincipal UserDetails userDetails) {
         List<GetBooking> spots = bookingService.getActiveBooking(userDetails.getUsername());
         return ResponseEntity.ok(spots);
+    }
+
+    @DeleteMapping("bookings/{id}")
+    public ResponseEntity<?> getActiveBooking(@AuthenticationPrincipal UserDetails userDetails, @PathVariable("id") Long id) {
+        try{
+            bookingService.deleteSpot(id, userDetails.getUsername());
+        }
+        catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>("Booking cancelled successfully", HttpStatus.OK);
     }
 }

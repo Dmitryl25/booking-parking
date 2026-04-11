@@ -76,6 +76,42 @@ public class BookingService {
         }
     }
 
+    public List<UserView> getAllUser() {
+        List<User> users = userRepository.findAll();
+        List<UserView> user_views = new ArrayList<>();
+        for (User user : users) {
+            UserView user_view = new UserView();
+            user_view.setEmail(user.getEmail());
+            user_view.setLicensePlate(user.getCarNum());
+            user_view.setId(user.getId());
+            user_view.setName(user.getFullName());
+            user_views.add(user_view);
+        }
+        return user_views;
+    }
+
+    public void updateUser(UpdateUser updateUser, Long id){
+        if (userRepository.existsById(id)) {
+            User user = userRepository.getReferenceById(id);
+            user.setCarNum(updateUser.getLicensePlate());
+            user.setFullName(updateUser.getName());
+            userRepository.save(user);
+        }
+        else{
+            throw new RuntimeException("User not found");
+        }
+    }
+
+    public void deleteUser(Long id){
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+        }
+        else{
+            throw new RuntimeException("User not found");
+        }
+    }
+
+
     public List<SpotResponse> getFreeSpots(SpotRequest spotRequest) {
         Long office_id = spotRequest.getOfficeId();
         if (!officeRepository.existsById(office_id)) {
@@ -122,7 +158,7 @@ public class BookingService {
             throw new RuntimeException("Spot already booked for this time");
         }
         if (spotRequest.getEndTime().isBefore(spotRequest.getStartTime())){
-            throw new IllegalArgumentException("Invalid request (endTime before startTime)");
+            throw new IllegalArgumentException("Invalid request");
         }
 
         if (!sp.contains(spotRequest.getNumber()) && sp.size() == category.getSpot_count()) {
@@ -155,5 +191,22 @@ public class BookingService {
 
         }
         return ans;
+    }
+
+    public void deleteSpot(Long id, String email) {
+        if (spotRepository.existsById(id)) {
+            User user =  userRepository.getReferenceByEmail(email);
+            Spot spot = spotRepository.getReferenceById(id);
+            if (user.getId().equals(spot.getUser().getId())) {
+                spotRepository.deleteById(id);
+            }
+            else{
+                throw new RuntimeException("Forbidden (booking belongs to another user)");
+            }
+        }
+        else{
+            throw new IllegalArgumentException("Booking not found");
+        }
+
     }
 }
