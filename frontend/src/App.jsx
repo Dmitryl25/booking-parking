@@ -4,9 +4,7 @@ import Login from './pages/Login';
 import Header from './components/Header';
 import UserBookings from './pages/user/UserBookings';
 import BookingPage from './pages/user/BookingPage';
-
-// Временные компоненты
-const AdminOffices = () => <div>Страница админа</div>;
+import AdminOffices from './pages/admin/AdminOffices';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
   const { user } = useAuth();

@@ -82,8 +82,11 @@ const Login = () => {
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
-                                    <IconButton onClick={() => setShowPassword(!showPassword)}>
-                                        {showPassword ? <VisibilityOff /> : <VisibilityOff />}
+                                    <IconButton 
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <Visibility /> : <VisibilityOff />}
                                     </IconButton>
                                 </InputAdornment>
                             )

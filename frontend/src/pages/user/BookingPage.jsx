@@ -154,7 +154,7 @@ const BookingPage = () => {
                 <Grid container spacing={3}>
                     <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
-                            select fullWidth label="Офис" name="officeId"
+                            select fullWidth label="Офис" id="officeId" name="officeId"
                             value={filters.officeId} onChange={handleChange}
                         >
                             {offices.map(o => <MenuItem key={o.id} value={o.id}>{o.address}</MenuItem>)}
@@ -163,7 +163,7 @@ const BookingPage = () => {
 
                     <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
-                            select fullWidth label="Категория" name="categoryId"
+                            select fullWidth label="Категория" id="categoryId" name="categoryId"
                             value={filters.categoryId} onChange={handleChange}
                         >
                             {categories.map(c => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
@@ -172,7 +172,7 @@ const BookingPage = () => {
 
                     <Grid size={{ xs: 12, md: 4 }}>
                         <TextField
-                            fullWidth type="date" label="Дата" name="date"
+                            fullWidth type="date" label="Дата" id="date" name="date"
                             value={filters.date} onChange={handleChange}
                             InputLabelProps={{ shrink: true }}
                             inputProps={{ min: minDateStr, max: maxDateStr }}
@@ -181,7 +181,7 @@ const BookingPage = () => {
 
                     <Grid size={{ xs: 6, md: 4 }}>
                         <TextField
-                            fullWidth type="time" label="Начало" name="startTime"
+                            fullWidth type="time" label="Начало" id="startTime" name="startTime"
                             value={filters.startTime} onChange={handleChange}
                             InputLabelProps={{ shrink: true }}
                         />
@@ -189,7 +189,7 @@ const BookingPage = () => {
 
                     <Grid size={{ xs: 6, md: 4 }}>
                         <TextField
-                            fullWidth type="time" label="Конец" name="endTime"
+                            fullWidth type="time" label="Конец" id="endTime" name="endTime"
                             value={filters.endTime} onChange={handleChange}
                             InputLabelProps={{ shrink: true }}
                         />

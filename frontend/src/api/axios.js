@@ -18,9 +18,12 @@ api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
 
+        // Проверка на исключение страницы логина
+        const isLoginRequest = originalRequest.url.includes('/auth/login');
+
+        if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest) {
+            originalRequest._retry = true;
             const refreshToken = localStorage.getItem('refreshToken');
 
             if (refreshToken) {
@@ -39,13 +42,13 @@ api.interceptors.response.use(
                     // Обновляем заголовок в упавшем запросе и повторяем его
                     originalRequest.headers.Authorization = `Bearer ${newAccess}`;
 
-                    return api(originalRequest)
+                    return api(originalRequest);
                 } catch (refreshError) {
-                    console.error("Рефреш токен недействителен")
+                    console.error("Рефреш токен недействителен");
                     localStorage.clear();
                     window.location.href = '/login';
-
-                    return Promise.reject(refreshError)
+                    
+                    return Promise.reject(refreshError);
                 }
             } else {
                 localStorage.clear();
@@ -53,7 +56,7 @@ api.interceptors.response.use(
             }
         }
 
-        return Promise.reject(error)
+        return Promise.reject(error);
     }
 )
 

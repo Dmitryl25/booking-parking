@@ -141,6 +141,8 @@ paths:
                       type: integer
                     name:
                       type: string
+                    spot_count:
+                      type: integer
         '401':
           description: Unauthorized
         '404':
@@ -149,7 +151,7 @@ paths:
 
   # Эндпоинты для пользователя
   /bookings/search:
-    post:
+    get:
       summary: Search available parking
       description: Поиск свободных парковочных мест в указанном офисе на заданный период времени.
       tags: [User]
@@ -315,6 +317,9 @@ paths:
                   type: string
                 password:
                   type: string
+                role:
+                  type: string
+                  nullable: true
       responses:
         '201':
           description: User created
@@ -350,6 +355,8 @@ paths:
                       type: string
                     licensePlate:
                       type: string
+                    role:
+                      type: string
         '401':
           description: Unauthorized
   
@@ -360,9 +367,6 @@ paths:
       tags: [Admin]
       security:
         - bearerAuth: []
-      requestBody:
-        required: false
-        content: {}
       responses:
         '200':
           description: Password generated
@@ -578,10 +582,14 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name]
+              required: [name, spotsName, spot_count]
               properties:
                 name:
                   type: string
+                spotsName:
+                  type: string
+                spot_count:
+                  type: integer
       responses:
         '201':
           description: Created
@@ -593,8 +601,47 @@ paths:
           description: Office not found
         '409':
           description: Category already exists in this office
-
-  /admin/categories/{id}:
+  /admin/offices/{officeId}/categories/{id}:
+    put:
+      summary: Update category
+      description: Обновление категории. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: officeId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID офиса
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Номер категории
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Updated
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Spot not found
+        '409':
+          description: Category with this name already exists in this office
     delete:
       summary: Delete category
       description: Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
@@ -688,26 +735,27 @@ paths:
         '404':
           description: Office not found
 
-  /admin/offices/{officeId}/parking-spots/{number}:
+  /admin/parking-spots:
     delete:
       summary: Delete parking spot
       description: Удаление парковочного места. Только для администратора.
       tags: [Admin]
       security:
         - bearerAuth: []
-      parameters:
-        - name: officeId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID офиса
-        - name: number
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Номер парковочного места
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [number, categoryId, officeId]
+              properties:
+                number:
+                  type: string
+                categoryId:
+                  type: integer
+                officeId:
+                  type: integer
       responses:
         '200':
           description: Deleted
@@ -717,33 +765,27 @@ paths:
           description: Forbidden (not admin)
         '404':
           description: Spot not found
+  /admin/bookings/force:
     post:
-      summary: Block parking spot temporarily
-      description: Временная блокировка парковочного места на указанный период. Только для администратора.
+      summary: Spot blocking
+      description: Блокирование места.
       tags: [Admin]
       security:
         - bearerAuth: []
-      parameters:
-        - name: officeId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID офиса
-        - name: number
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Номер парковочного места
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [startTime, endTime]
+              required: [officeId, categoryId, number, startTime, endTime]
               properties:
+                officeId:
+                  type: integer
+                categoryId:
+                  type: integer
+                number:
+                  type: string
                 startTime:
                   type: string
                   format: date-time
@@ -752,7 +794,7 @@ paths:
                   format: date-time
       responses:
         '200':
-          description: Status updated
+          description: Blocked
         '400':
           description: Invalid request
         '401':
@@ -761,6 +803,7 @@ paths:
           description: Forbidden (not admin)
         '404':
           description: Spot not found
+
 
 components:
   securitySchemes:

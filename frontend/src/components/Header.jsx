@@ -22,7 +22,7 @@ const Header = () => {
                     </Typography>
 
                     <Box sx={{ display: 'flex', gap: 2 }}>
-                        {user?.role === 'ADMIN' ? (
+                        {user?.role === 'ROLE_ADMIN' ? (
                             <Button color="inherit" onClick={() => navigate('/admin/offices')}>Офисы</Button>
                         ) : (
                             <Button color="inherit" onClick={() => navigate('/user/bookings')}>Мои бронирования</Button>
