@@ -60,7 +60,6 @@ public class SecurityConfig {
 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(auth -> auth
-                        .antMatchers(HttpMethod.POST, "/api/offices/{officeId}/categories").hasRole("ADMIN")
                         .antMatchers("/api/auth/**").permitAll()
                         .antMatchers("/api/admin/**").hasRole("ADMIN")
                         .antMatchers("/api/bookings/**").hasRole("USER")

@@ -199,6 +199,7 @@ public class BookingService {
             user_view.setLicensePlate(user.getCarNum());
             user_view.setId(user.getId());
             user_view.setName(user.getFullName());
+            user_view.setRole(user.getRole());
             user_views.add(user_view);
         }
         return user_views;

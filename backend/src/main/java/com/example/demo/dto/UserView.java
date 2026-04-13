@@ -8,4 +8,5 @@ public class UserView {
     private String email;
     private String name;
     private String licensePlate;
+    private String role;
 }
