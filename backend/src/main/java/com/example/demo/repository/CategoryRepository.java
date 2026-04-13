@@ -10,5 +10,9 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     boolean existsByNameAndOfficeId(String name, Long officeId);
     List<Category> findByOfficeId(Long officeId);
+    Boolean existsByName(String name);
+    boolean existsByIdAndOfficeId(Long id, Long officeId);
+
+
 
 }

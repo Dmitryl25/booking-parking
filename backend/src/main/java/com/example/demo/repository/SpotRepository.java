@@ -52,4 +52,12 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("userId") Long userId,
             @Param("data") ZonedDateTime data
     );
+
+    void deleteAllByUserId(Long id);
+
+    void deleteAllByOfficeId(Long id);
+
+    void deleteAllByCategoryId(Long id);
+
+    void deleteAllBySpot_number(String  spot_number);
 }

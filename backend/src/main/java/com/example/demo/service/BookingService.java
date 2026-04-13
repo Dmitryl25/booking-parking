@@ -37,7 +37,7 @@ public class BookingService {
 
     public Office createOffice(OfficeView office_view) {
         if (officeRepository.existsByAddress(office_view.getAddress())) {
-            throw new RuntimeException("Office already exists");
+            throw new RuntimeException("Office with this address already exists");
         }
         Office office = new Office();
         office.setAddress(office_view.getAddress());
@@ -45,13 +45,35 @@ public class BookingService {
         return office;
     }
 
-    public Category createCategory(CategoryView cat_view, Long officeId) {
-        if (catRepository.existsByNameAndOfficeId(cat_view.getName(), officeId)) {
-            throw new RuntimeException("Category already exists");
-        }
+    public List<Office> getAllOffice() {
+        return officeRepository.findAll();
+    }
 
+    public void updateOffice(OfficeView office_view, Long id) {
+        if (!officeRepository.existsById(id)) {
+            throw new RuntimeException("Office not found");
+        }
+        Office office = officeRepository.getReferenceById(id);
+        office.setAddress(office_view.getAddress());
+        officeRepository.save(office);
+    }
+
+
+    public void deleteOffice(Long id) {
+        if (!officeRepository.existsById(id)) {
+            throw new RuntimeException("Office not found");
+        }
+        spotRepository.deleteAllByOfficeId(id);
+        officeRepository.deleteById(id);
+    }
+
+
+    public Category createCategory(CategoryView cat_view, Long officeId) {
         if (!officeRepository.existsById(officeId)) {
             throw new RuntimeException("Office not found");
+        }
+        if (catRepository.existsByNameAndOfficeId(cat_view.getName(), officeId)) {
+            throw new RuntimeException("Category already exists in this office");
         }
 
         Category cat = new Category();
@@ -63,8 +85,31 @@ public class BookingService {
         return cat;
     }
 
-    public List<Office> getAllOffice() {
-        return officeRepository.findAll();
+    public void deleteCategory(Long categoryId) {
+        if (!catRepository.existsById(categoryId)) {
+            throw new RuntimeException("Category not found");
+        }
+        spotRepository.deleteAllByCategoryId(categoryId);
+        catRepository.deleteById(categoryId);
+    }
+
+    public void updateCategory(Long Id, Long officeId, UpdateCategory update_category) {
+        if (!officeRepository.existsById(officeId)) {
+            throw new RuntimeException("Office not found");
+        }
+        if (!catRepository.existsById(Id)) {
+            throw new RuntimeException("Category not found");
+        }
+        if (!catRepository.existsByIdAndOfficeId(Id, officeId)) {
+            throw new RuntimeException("Category not exists in this office");
+        }
+        String name = update_category.getName();
+        if (catRepository.existsByNameAndOfficeId(name, officeId)){
+            throw new IllegalArgumentException("Category with this name already exists in this office");
+        }
+        Category category = catRepository.getReferenceById(Id);
+        category.setName(update_category.getName());
+        catRepository.save(category);
     }
 
     public List<Category> getAllCategoryOffice(Long office_id) {
@@ -75,6 +120,75 @@ public class BookingService {
             throw new RuntimeException("Office not found");
         }
     }
+
+
+    public void addSpot(AddSpot addSpot){
+        if (officeRepository.existsById(addSpot.getOfficeId())) {
+            if (catRepository.existsById(addSpot.getCategoryId())) {
+                Office office = officeRepository.getReferenceById(addSpot.getOfficeId());
+                List<Category> categories = getAllCategoryOffice(addSpot.getOfficeId());
+                Category category = catRepository.getReferenceById(addSpot.getCategoryId());
+                if (categories.contains(category)) {
+                    List<String> sp = Arrays.asList(category.getSpotsName().split(" "));
+                    if (!sp.contains(addSpot.getNumber())){
+                        category.setSpot_count(category.getSpot_count() + 1);
+                        if (category.getSpotsName().isEmpty()){
+                            category.setSpotsName(addSpot.getNumber());
+                        }
+                        else{
+                            category.setSpotsName(category.getSpotsName() + " " + addSpot.getNumber());
+                        }
+                        catRepository.save(category);
+                    }
+                    else {
+                        throw new IllegalArgumentException("Spot with such number already exists in this office");
+                    }
+                }
+                else{
+                    throw new IllegalArgumentException("invalid request");
+                }
+            }
+            else{
+                throw new RuntimeException("Office or category not found");
+            }
+        }
+        else{
+            throw new RuntimeException("Office or category not found");
+        }
+    }
+
+    public void deleteSpot(AddSpot addSpot){
+        if (officeRepository.existsById(addSpot.getOfficeId())) {
+            if (catRepository.existsById(addSpot.getCategoryId())) {
+                Office office = officeRepository.getReferenceById(addSpot.getOfficeId());
+                List<Category> categories = getAllCategoryOffice(addSpot.getOfficeId());
+                Category category = catRepository.getReferenceById(addSpot.getCategoryId());
+                if (categories.contains(category)) {
+                    List<String> sp = Arrays.asList(category.getSpotsName().split(" "));
+                    if (!sp.contains(addSpot.getNumber())){
+                        category.setSpot_count(category.getSpot_count() - 1);
+                        category.setSpotsName(category.getSpotsName().replace(addSpot.getNumber(), ""));
+                        catRepository.save(category);
+                        spotRepository.deleteAllBySpot_number(addSpot.getNumber());
+                    }
+                    else {
+                        throw new RuntimeException("Spot not found");
+                    }
+                }
+                else{
+                    throw new IllegalArgumentException("invalid request");
+                }
+            }
+            else{
+                throw new RuntimeException("Office or category not found");
+            }
+        }
+        else{
+            throw new RuntimeException("Office or category not found");
+        }
+    }
+
+
 
     public List<UserView> getAllUser() {
         List<User> users = userRepository.findAll();
@@ -104,6 +218,7 @@ public class BookingService {
 
     public void deleteUser(Long id){
         if (userRepository.existsById(id)) {
+            spotRepository.deleteAllByUserId(id);
             userRepository.deleteById(id);
         }
         else{

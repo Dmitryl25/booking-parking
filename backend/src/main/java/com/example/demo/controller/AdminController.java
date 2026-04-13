@@ -70,34 +70,121 @@ public class AdminController {
         return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
     }
 
-    @PostMapping("/offices")
-    public ResponseEntity<Office> createOffice(@RequestBody OfficeView officeView) {
+
+    @PostMapping("admin/offices")
+    public ResponseEntity<?> createOffice(@RequestBody OfficeView officeView) {
         Office office;
         try{
             office = bookingService.createOffice(officeView);
         }
         catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
 
         return new ResponseEntity<>(office, HttpStatus.CREATED);
     }
 
-    @PostMapping("/offices/{officeId}/categories")
-    public ResponseEntity<Category> createCategory(@RequestBody CategoryView catView, @PathVariable("officeId") Long officeId) {
+
+    @PutMapping("admin/offices/{id}")
+    public ResponseEntity<?> updateOffice(@RequestBody OfficeView officeView, @PathVariable("id") Long id) {
+        try{
+            bookingService.updateOffice(officeView, id);
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>("Updated", HttpStatus.OK);
+    }
+
+    @DeleteMapping("admin/offices/{id}")
+    public ResponseEntity<?> deleteOffice(@PathVariable("id") Long id) {
+        try{
+            bookingService.deleteOffice(id);
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>("Office deleted successfully", HttpStatus.OK);
+    }
+
+
+    @PostMapping("admin/offices/{officeId}/categories")
+    public ResponseEntity<?> createCategory(@RequestBody CategoryView catView, @PathVariable("officeId") Long officeId) {
         Category cat;
         try{
             cat = bookingService.createCategory(catView, officeId);
         }
         catch (RuntimeException e) {
             if (e.getMessage().equals("Office not found")) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            }
+            else{
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+            }
+        }
+        return new ResponseEntity<>("Created", HttpStatus.CREATED);
+    }
+
+    @PutMapping("admin/offices/{officeId}/categories/{id}")
+    public ResponseEntity<?> updateCategory(@RequestBody UpdateCategory cat, @PathVariable("officeId") Long officeId,  @PathVariable("id") Long id) {
+        try{
+            bookingService.updateCategory(id, officeId, cat);
+        }
+        catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>("Updated", HttpStatus.OK);
+    }
+
+    @DeleteMapping("admin/categories/{id}")
+    public ResponseEntity<?> deleteCategory(@PathVariable("id") Long id) {
+        try{
+            bookingService.deleteCategory(id);
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>("Category deleted successfully", HttpStatus.OK);
+    }
+
+
+    @PostMapping("admin/parking-spots")
+    public ResponseEntity<?> addPost(@RequestBody AddSpot spot) {
+        try{
+            bookingService.addSpot(spot);
+        }
+        catch (IllegalArgumentException e) {
+            if (e.getMessage().equals("invalid request")) {
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
             }
             else{
                 return new ResponseEntity<>(HttpStatus.CONFLICT);
             }
         }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
 
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return new ResponseEntity<>("Created", HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("admin/parking-spots")
+    public ResponseEntity<?> deletePost(@RequestBody AddSpot spot) {
+        try{
+            bookingService.deleteSpot(spot);
+        }
+        catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>("Deleted", HttpStatus.CREATED);
     }
 }

@@ -49,8 +49,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
                         if (jwtUtil.validateAccessToken(token, userDetails)) {
-                            // ВАЖНО: создаем authority с ролью
-                            // Если роль уже имеет префикс ROLE_, используем как есть
                             SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
 
                             UsernamePasswordAuthenticationToken authToken =
@@ -62,7 +60,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                             SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                            // Логируем для отладки
                             System.out.println("✅ Аутентифицирован: " + email + " с ролью: " + role);
                         }
                     }
