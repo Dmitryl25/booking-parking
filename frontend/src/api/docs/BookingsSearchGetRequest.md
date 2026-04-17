@@ -1,4 +1,4 @@
-# BookingsPostRequest
+# BookingsSearchGetRequest
 
 
 ## Properties
@@ -7,19 +7,17 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **officeId** | **number** |  | [default to undefined]
 **categoryId** | **number** |  | [default to undefined]
-**number** | **string** |  | [default to undefined]
 **startTime** | **string** |  | [default to undefined]
 **endTime** | **string** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { BookingsPostRequest } from './api';
+import { BookingsSearchGetRequest } from './api';
 
-const instance: BookingsPostRequest = {
+const instance: BookingsSearchGetRequest = {
     officeId,
     categoryId,
-    number,
     startTime,
     endTime,
 };

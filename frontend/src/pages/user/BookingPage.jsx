@@ -141,7 +141,6 @@ const BookingPage = () => {
 
     return (
         <Container maxWidth="md" sx={{ mt: 4, mb: 6 }}>
-            <Typography variant="h4" fontWeight="700" mb={4}>Забронировать место</Typography>
             <Button 
                 startIcon={<ArrowBackIcon />} 
                 onClick={() => navigate(-1)} // Возврат на предыдущую страницу в истории
@@ -149,6 +148,7 @@ const BookingPage = () => {
             >
                 Назад
             </Button>
+            <Typography variant="h4" fontWeight="700" mb={4}>Забронировать место</Typography>
 
             <Card variant="outlined" sx={{ p: 3, borderRadius: 3, mb: 4 }}>
                 <Grid container spacing={3}>

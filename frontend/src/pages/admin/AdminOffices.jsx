@@ -133,7 +133,9 @@ const AdminOffices = () => {
                                         variant="outlined" 
                                         color="primary" 
                                         startIcon={<CategoryIcon />}
-                                        onClick={() => navigate(`/admin/offices/${office.id}/categories`)}
+                                        onClick={() => navigate(`/admin/offices/${office.id}/categories`, { 
+                                            state: { officeAddress: office.address } 
+                                        })}
                                         sx={{ textTransform: 'none', borderRadius: 2 }}
                                     >
                                         Категории

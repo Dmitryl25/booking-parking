@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **email** | **string** |  | [optional] [default to undefined]
 **name** | **string** |  | [optional] [default to undefined]
 **licensePlate** | **string** |  | [optional] [default to undefined]
+**role** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -20,6 +21,7 @@ const instance: AdminUsersGet200ResponseInner = {
     email,
     name,
     licensePlate,
+    role,
 };
 ```
 

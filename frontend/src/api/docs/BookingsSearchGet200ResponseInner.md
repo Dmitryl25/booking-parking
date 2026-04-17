@@ -1,4 +1,4 @@
-# AdminOfficesOfficeIdParkingSpotsGet200ResponseInner
+# BookingsSearchGet200ResponseInner
 
 
 ## Properties
@@ -6,18 +6,14 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **number** | **string** |  | [optional] [default to undefined]
-**category** | **string** |  | [optional] [default to undefined]
-**available** | **boolean** |  | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { AdminOfficesOfficeIdParkingSpotsGet200ResponseInner } from './api';
+import { BookingsSearchGet200ResponseInner } from './api';
 
-const instance: AdminOfficesOfficeIdParkingSpotsGet200ResponseInner = {
+const instance: BookingsSearchGet200ResponseInner = {
     number,
-    category,
-    available,
 };
 ```
 

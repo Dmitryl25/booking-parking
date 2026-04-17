@@ -7,7 +7,7 @@ All URIs are relative to *http://localhost:8080/api*
 |[**bookingsIdDelete**](#bookingsiddelete) | **DELETE** /bookings/{id} | Cancel booking|
 |[**bookingsMyGet**](#bookingsmyget) | **GET** /bookings/my | Get my bookings|
 |[**bookingsPost**](#bookingspost) | **POST** /bookings | Create booking|
-|[**bookingsSearchPost**](#bookingssearchpost) | **POST** /bookings/search | Search available parking|
+|[**bookingsSearchGet**](#bookingssearchget) | **GET** /bookings/search | Search available parking|
 
 # **bookingsIdDelete**
 > bookingsIdDelete()
@@ -164,8 +164,8 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **bookingsSearchPost**
-> Array<BookingsSearchPost200ResponseInner> bookingsSearchPost(bookingsSearchPostRequest)
+# **bookingsSearchGet**
+> Array<BookingsSearchGet200ResponseInner> bookingsSearchGet(bookingsSearchGetRequest)
 
 Поиск свободных парковочных мест в указанном офисе на заданный период времени.
 
@@ -175,16 +175,16 @@ void (empty response body)
 import {
     UserApi,
     Configuration,
-    BookingsSearchPostRequest
+    BookingsSearchGetRequest
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new UserApi(configuration);
 
-let bookingsSearchPostRequest: BookingsSearchPostRequest; //
+let bookingsSearchGetRequest: BookingsSearchGetRequest; //
 
-const { status, data } = await apiInstance.bookingsSearchPost(
-    bookingsSearchPostRequest
+const { status, data } = await apiInstance.bookingsSearchGet(
+    bookingsSearchGetRequest
 );
 ```
 
@@ -192,12 +192,12 @@ const { status, data } = await apiInstance.bookingsSearchPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **bookingsSearchPostRequest** | **BookingsSearchPostRequest**|  | |
+| **bookingsSearchGetRequest** | **BookingsSearchGetRequest**|  | |
 
 
 ### Return type
 
-**Array<BookingsSearchPost200ResponseInner>**
+**Array<BookingsSearchGet200ResponseInner>**
 
 ### Authorization
 

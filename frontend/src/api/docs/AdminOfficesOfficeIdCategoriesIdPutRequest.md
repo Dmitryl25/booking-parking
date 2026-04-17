@@ -1,4 +1,4 @@
-# AdminOfficesOfficeIdCategoriesPostRequest
+# AdminOfficesOfficeIdCategoriesIdPutRequest
 
 
 ## Properties
@@ -6,18 +6,14 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **string** |  | [default to undefined]
-**spotsName** | **string** |  | [default to undefined]
-**spot_count** | **number** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { AdminOfficesOfficeIdCategoriesPostRequest } from './api';
+import { AdminOfficesOfficeIdCategoriesIdPutRequest } from './api';
 
-const instance: AdminOfficesOfficeIdCategoriesPostRequest = {
+const instance: AdminOfficesOfficeIdCategoriesIdPutRequest = {
     name,
-    spotsName,
-    spot_count,
 };
 ```
 

@@ -601,6 +601,7 @@ paths:
           description: Office not found
         '409':
           description: Category already exists in this office
+  
   /admin/offices/{officeId}/categories/{id}:
     put:
       summary: Update category
@@ -649,6 +650,11 @@ paths:
       security:
         - bearerAuth: []
       parameters:
+        - name: officeId
+          in: path
+          required: true
+          schema:
+            type: integer
         - name: id
           in: path
           required: true
@@ -699,6 +705,36 @@ paths:
         '409':
           description: Spot with such number already exists in this office
 
+    delete:
+      summary: Delete parking spot
+      description: Удаление парковочного места. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [number, categoryId, officeId]
+              properties:
+                number:
+                  type: string
+                categoryId:
+                  type: integer
+                officeId:
+                  type: integer
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Spot not found
+
   /admin/offices/{officeId}/parking-spots:
     get:
       summary: Get parking spots
@@ -734,37 +770,7 @@ paths:
           description: Forbidden (not admin)
         '404':
           description: Office not found
-
-  /admin/parking-spots:
-    delete:
-      summary: Delete parking spot
-      description: Удаление парковочного места. Только для администратора.
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [number, categoryId, officeId]
-              properties:
-                number:
-                  type: string
-                categoryId:
-                  type: integer
-                officeId:
-                  type: integer
-      responses:
-        '200':
-          description: Deleted
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden (not admin)
-        '404':
-          description: Spot not found
+  
   /admin/bookings/force:
     post:
       summary: Spot blocking
