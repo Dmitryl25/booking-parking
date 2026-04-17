@@ -59,5 +59,6 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
 
     void deleteAllByCategoryId(Long id);
 
-    void deleteAllBySpot_number(String  spot_number);
+    @Query("DELETE FROM Spot s WHERE s.spot_number = :spot_number")
+    void deleteAllBySpot_number(@Param("spot_number") String  spot_number);
 }
