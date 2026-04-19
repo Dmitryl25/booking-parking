@@ -104,7 +104,7 @@ const AdminOffices = () => {
                             <CardContent sx={{ flexGrow: 1 }}>
                                 <Box display="flex" justifyContent="space-between" alignItems="flex-start">
                                     <Typography 
-                                        variant="h6" 
+                                        variant="h6"
                                         gutterBottom 
                                         sx={{ lineHeight: 1.2, mr: 1, wordBreak: 'break-word', flexGrow: 1, fontWeight: 600 }}
                                     >
