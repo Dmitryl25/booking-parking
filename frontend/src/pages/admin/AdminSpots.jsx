@@ -7,8 +7,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import BlockIcon from '@mui/icons-material/Block';
 import { adminApi, commonApi } from "../../api/index";
 
-
-
 const AdminSpots = () => {
     const { officeId } = useParams();
     const navigate = useNavigate();
@@ -92,11 +90,19 @@ const AdminSpots = () => {
 
     // Удаление парковочного места
     const handleDeleteSpot = async (spot) => {
+        const category = allCategories.find(c => c.name === spot.category);
+        const categoryId = category ? category.id : null;
+
+        if (!categoryId) {
+            alert("Не удалось определить ID категории");
+            return;
+        }
+
         if (window.confirm(`Вы действительно хотите удалить место ${spot.number}?`)) {
             try {
                 await adminApi.adminParkingSpotsDelete({
                     number: spot.number,
-                    categoryId: spot.categoryId,
+                    categoryId: categoryId,
                     officeId: parseInt(officeId)
                 });
                 fetchSpots();
