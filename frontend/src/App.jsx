@@ -5,6 +5,8 @@ import Header from './components/Header';
 import UserBookings from './pages/user/UserBookings';
 import BookingPage from './pages/user/BookingPage';
 import AdminOffices from './pages/admin/AdminOffices';
+import AdminCategories from './pages/admin/AdminCategories';
+import AdminSpots from './pages/admin/AdminSpots';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
   const { user } = useAuth();
@@ -34,6 +36,22 @@ function App() {
                     <AdminOffices />
                   </ProtectedRoute>
                 } 
+                />
+                <Route
+                 path='/admin/offices/:officeId/categories'
+                 element={
+                  <ProtectedRoute allowedRole='ROLE_ADMIN'>
+                    <AdminCategories />
+                  </ProtectedRoute>
+                 }
+                />
+                <Route
+                 path='/admin/offices/:officeId/spots'
+                 element={
+                  <ProtectedRoute allowedRole='ROLE_ADMIN'>
+                    <AdminSpots />
+                  </ProtectedRoute>
+                 }
                 />
 
                 {/* Маршруты пользователя */}
