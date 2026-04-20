@@ -7,6 +7,7 @@ import BookingPage from './pages/user/BookingPage';
 import AdminOffices from './pages/admin/AdminOffices';
 import AdminCategories from './pages/admin/AdminCategories';
 import AdminSpots from './pages/admin/AdminSpots';
+import AdminUsers from './pages/admin/AdminUsers';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
   const { user } = useAuth();
@@ -50,6 +51,14 @@ function App() {
                  element={
                   <ProtectedRoute allowedRole='ROLE_ADMIN'>
                     <AdminSpots />
+                  </ProtectedRoute>
+                 }
+                />
+                <Route
+                 path='/admin/users'
+                 element={
+                  <ProtectedRoute allowedRole='ROLE_ADMIN'>
+                    <AdminUsers />
                   </ProtectedRoute>
                  }
                 />
