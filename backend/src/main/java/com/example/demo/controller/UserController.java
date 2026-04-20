@@ -21,15 +21,6 @@ public class UserController {
     @Autowired
     private BookingService bookingService;
 
-    @GetMapping("profile")
-    public Map<String, Object> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("email", userDetails.getUsername());
-        response.put("roles", userDetails.getAuthorities());
-        response.put("message", "Привет, " + userDetails.getUsername());
-        return response;
-    }
-
 
     @PostMapping("bookings/search")
     public ResponseEntity<?> getFreeSpot(@RequestBody SpotRequest spotRequest) {

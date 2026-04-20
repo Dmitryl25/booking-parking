@@ -187,4 +187,50 @@ public class AdminController {
 
         return new ResponseEntity<>("Deleted", HttpStatus.CREATED);
     }
+
+    @PostMapping("admin/bookings/force")
+    public ResponseEntity<?> blockPost(@RequestBody BookingCreateRequest booking, @AuthenticationPrincipal UserDetails userDetails){
+        try{
+            bookingService.blockSpot(booking, userDetails.getUsername());
+        }
+        catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>("Blocked", HttpStatus.OK);
+    }
+
+    @GetMapping("admin/offices/{officeId}/parking-spots")
+    public ResponseEntity<?> getPost(@PathVariable("officeId") Long id){
+        List<GetOfficeBooking> ans;
+        try{
+            ans = bookingService.getOfficeBooking(id);
+        }
+        catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(ans, HttpStatus.OK);
+    }
+
+
+
+    @PostMapping("admin/generate-password")
+    public ResponseEntity<?> generatePassword() {
+        return new ResponseEntity<>(Map.of("password", bookingService.generatePassword()), HttpStatus.OK);
+    }
+
+    @PostMapping("admin/users/{id}/reset-password")
+    public ResponseEntity<?> resetPassword(@PathVariable("id") Long id, String password) {
+        Map<String, ?> ans;
+        try {
+            ans = bookingService.resetPassword(id, password);
+        }
+        catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(ans, HttpStatus.OK);
+    }
 }

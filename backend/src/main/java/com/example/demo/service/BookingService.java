@@ -10,14 +10,17 @@ import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.OfficeRepository;
 import com.example.demo.repository.SpotRepository;
 import com.example.demo.repository.UserRepository;
+import org.passay.CharacterRule;
+import org.passay.EnglishCharacterData;
+import org.passay.LengthRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.passay.PasswordGenerator;
+
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional
@@ -324,5 +327,75 @@ public class BookingService {
             throw new IllegalArgumentException("Booking not found");
         }
 
+    }
+
+    public void blockSpot(BookingCreateRequest spotRequest, String email) {
+        User user = userRepository.getReferenceByEmail(email);
+        Long user_id = user.getId();
+        Category category = catRepository.getReferenceById(spotRequest.getCategoryId());
+        List<String> sp = Arrays.asList(category.getSpotsName().split(" "));
+
+        if (spotRequest.getEndTime().isBefore(spotRequest.getStartTime())){
+            throw new IllegalArgumentException("Invalid request");
+        }
+
+        if (!sp.contains(spotRequest.getNumber()) && sp.size() == category.getSpot_count()) {
+            throw new RuntimeException("Spot not found");
+        }
+        Spot spot = new Spot();
+        spot.setSpot_number(spotRequest.getNumber());
+        spot.setCategory(catRepository.getReferenceById(spotRequest.getCategoryId()));
+        spot.setOffice(officeRepository.getReferenceById(spotRequest.getOfficeId()));
+        spot.setUser(userRepository.getReferenceById(user_id));
+        spot.setStart(spotRequest.getStartTime());
+        spot.setFinish(spotRequest.getEndTime());
+
+        spotRepository.DeleteSpotBookedBetween(spotRequest.getCategoryId(), spotRequest.getOfficeId(), spotRequest.getNumber(), spotRequest.getStartTime(), spotRequest.getEndTime());
+        spotRepository.save(spot);
+    }
+
+    public List<GetOfficeBooking> getOfficeBooking(Long office_id) {
+        if (!officeRepository.existsById(office_id)) {
+            throw new IllegalArgumentException("Office not found");
+        }
+        List<Category> categoryList = catRepository.findByOfficeId(office_id);
+        List<GetOfficeBooking> ans = new ArrayList<>();
+        for (Category cat : categoryList) {
+            String[] names = cat.getSpotsName().split(" ");
+            for (String name : names) {
+                GetOfficeBooking booking = new GetOfficeBooking();
+                booking.setNumber(name);
+                booking.setCategory(cat.getName());
+                if (spotRepository.existsSpotByParameters(cat.getId(), office_id, name)){
+                    booking.setAvailable(spotRepository.BookedByAdmin(cat.getId(), office_id, name));
+                }
+                else{
+                    booking.setAvailable(false);
+                }
+                ans.add(booking);
+            }
+        }
+        return ans;
+    }
+
+    public String generatePassword(){
+        PasswordGenerator generator = new PasswordGenerator();
+        List<CharacterRule> rules = Arrays.asList(
+                new CharacterRule(EnglishCharacterData.UpperCase, 1),
+                new CharacterRule(EnglishCharacterData.LowerCase, 1),
+                new CharacterRule(EnglishCharacterData.Digit, 1),
+                new CharacterRule(EnglishCharacterData.Special, 1)
+        );
+        return generator.generatePassword(10, rules);
+    }
+
+    public Map<String, ?> resetPassword(Long id, String password){
+        if (!userRepository.existsById(id)){
+            throw new IllegalArgumentException("User not found");
+        }
+        User user = userRepository.getReferenceById(id);
+        user.setPassword(password);
+        userRepository.save(user);
+        return Map.of("id", id, "password", password);
     }
 }
