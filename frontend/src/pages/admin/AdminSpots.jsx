@@ -43,7 +43,7 @@ const AdminSpots = () => {
             }
 
             // Получение всех категорий офиса
-            const catRes = await commonApi.officesOfficeIdCategoriesGet(officeId);
+            const catRes = await commonApi.officesOfficeIdCategoriesGet(parseInt(officeId));
             setAllCategories(catRes.data || []);
 
             // Получение всех мест офиса
@@ -102,7 +102,7 @@ const AdminSpots = () => {
             try {
                 await adminApi.adminParkingSpotsDelete({
                     number: spot.number,
-                    categoryId: categoryId,
+                    categoryId: parseInt(categoryId),
                     officeId: parseInt(officeId)
                 });
                 fetchSpots();
@@ -136,7 +136,7 @@ const AdminSpots = () => {
         try {
             const payload = {
                 officeId: parseInt(officeId),
-                categoryId: categoryId,
+                categoryId: parseInt(categoryId),
                 number: selectedSpot.number,
                 startTime: startISO,
                 endTime: endISO

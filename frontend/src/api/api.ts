@@ -114,10 +114,10 @@ export interface BookingsPostRequest {
     'startTime': string;
     'endTime': string;
 }
-export interface BookingsSearchGet200ResponseInner {
+export interface BookingsSearchPost200ResponseInner {
     'number'?: string;
 }
-export interface BookingsSearchGetRequest {
+export interface BookingsSearchPostRequest {
     'officeId': number;
     'categoryId': number;
     'startTime': string;
@@ -1800,13 +1800,13 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
         /**
          * Поиск свободных парковочных мест в указанном офисе на заданный период времени.
          * @summary Search available parking
-         * @param {BookingsSearchGetRequest} bookingsSearchGetRequest 
+         * @param {BookingsSearchPostRequest} bookingsSearchPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        bookingsSearchGet: async (bookingsSearchGetRequest: BookingsSearchGetRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'bookingsSearchGetRequest' is not null or undefined
-            assertParamExists('bookingsSearchGet', 'bookingsSearchGetRequest', bookingsSearchGetRequest)
+        bookingsSearchPost: async (bookingsSearchPostRequest: BookingsSearchPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'bookingsSearchPostRequest' is not null or undefined
+            assertParamExists('bookingsSearchPost', 'bookingsSearchPostRequest', bookingsSearchPostRequest)
             const localVarPath = `/bookings/search`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1815,7 +1815,7 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -1829,7 +1829,7 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(bookingsSearchGetRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(bookingsSearchPostRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1886,14 +1886,14 @@ export const UserApiFp = function(configuration?: Configuration) {
         /**
          * Поиск свободных парковочных мест в указанном офисе на заданный период времени.
          * @summary Search available parking
-         * @param {BookingsSearchGetRequest} bookingsSearchGetRequest 
+         * @param {BookingsSearchPostRequest} bookingsSearchPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async bookingsSearchGet(bookingsSearchGetRequest: BookingsSearchGetRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<BookingsSearchGet200ResponseInner>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.bookingsSearchGet(bookingsSearchGetRequest, options);
+        async bookingsSearchPost(bookingsSearchPostRequest: BookingsSearchPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<BookingsSearchPost200ResponseInner>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.bookingsSearchPost(bookingsSearchPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['UserApi.bookingsSearchGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['UserApi.bookingsSearchPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -1937,12 +1937,12 @@ export const UserApiFactory = function (configuration?: Configuration, basePath?
         /**
          * Поиск свободных парковочных мест в указанном офисе на заданный период времени.
          * @summary Search available parking
-         * @param {BookingsSearchGetRequest} bookingsSearchGetRequest 
+         * @param {BookingsSearchPostRequest} bookingsSearchPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        bookingsSearchGet(bookingsSearchGetRequest: BookingsSearchGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<BookingsSearchGet200ResponseInner>> {
-            return localVarFp.bookingsSearchGet(bookingsSearchGetRequest, options).then((request) => request(axios, basePath));
+        bookingsSearchPost(bookingsSearchPostRequest: BookingsSearchPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<BookingsSearchPost200ResponseInner>> {
+            return localVarFp.bookingsSearchPost(bookingsSearchPostRequest, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1986,12 +1986,12 @@ export class UserApi extends BaseAPI {
     /**
      * Поиск свободных парковочных мест в указанном офисе на заданный период времени.
      * @summary Search available parking
-     * @param {BookingsSearchGetRequest} bookingsSearchGetRequest 
+     * @param {BookingsSearchPostRequest} bookingsSearchPostRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public bookingsSearchGet(bookingsSearchGetRequest: BookingsSearchGetRequest, options?: RawAxiosRequestConfig) {
-        return UserApiFp(this.configuration).bookingsSearchGet(bookingsSearchGetRequest, options).then((request) => request(this.axios, this.basePath));
+    public bookingsSearchPost(bookingsSearchPostRequest: BookingsSearchPostRequest, options?: RawAxiosRequestConfig) {
+        return UserApiFp(this.configuration).bookingsSearchPost(bookingsSearchPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

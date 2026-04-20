@@ -66,7 +66,7 @@ const AdminUsers = () => {
         try {
             await adminApi.adminUsersPost(formData);
             setOpenAdd(false);
-            setFormData({ email: '', name: '', licensePlate: '', password: '', role: 'USER' });
+            setFormData({ email: '', name: '', licensePlate: '', password: '', role: 'ROLE_USER' });
             fetchUsers();
         } catch {
             alert("Ошибка при создании. Проверьте почту или формат данных.");

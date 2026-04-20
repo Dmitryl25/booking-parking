@@ -151,7 +151,7 @@ paths:
 
   # Эндпоинты для пользователя
   /bookings/search:
-    get:
+    post:
       summary: Search available parking
       description: Поиск свободных парковочных мест в указанном офисе на заданный период времени.
       tags: [User]

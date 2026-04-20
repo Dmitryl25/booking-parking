@@ -22,8 +22,8 @@ docs/AuthRefreshPost200Response.md
 docs/AuthRefreshPostRequest.md
 docs/BookingsMyGet200ResponseInner.md
 docs/BookingsPostRequest.md
-docs/BookingsSearchGet200ResponseInner.md
-docs/BookingsSearchGetRequest.md
+docs/BookingsSearchPost200ResponseInner.md
+docs/BookingsSearchPostRequest.md
 docs/CommonApi.md
 docs/OfficesGet200ResponseInner.md
 docs/OfficesOfficeIdCategoriesGet200ResponseInner.md
