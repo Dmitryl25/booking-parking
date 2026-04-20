@@ -88,12 +88,19 @@ public class BookingService {
         return cat;
     }
 
-    public void deleteCategory(Long categoryId) {
-        if (!catRepository.existsById(categoryId)) {
+    public void deleteCategory(Long Id, Long officeId) {
+        if (!officeRepository.existsById(officeId)) {
+            throw new RuntimeException("Office not found");
+        }
+        if (!catRepository.existsById(Id)) {
             throw new RuntimeException("Category not found");
         }
-        spotRepository.deleteAllByCategoryId(categoryId);
-        catRepository.deleteById(categoryId);
+        if (!catRepository.existsByIdAndOfficeId(Id, officeId)) {
+            throw new RuntimeException("Category not exists in this office");
+        }
+
+        spotRepository.deleteAllByCategoryId(Id);
+        catRepository.deleteById(Id);
     }
 
     public void updateCategory(Long Id, Long officeId, UpdateCategory update_category) {

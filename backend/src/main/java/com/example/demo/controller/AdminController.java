@@ -141,10 +141,10 @@ public class AdminController {
         return new ResponseEntity<>("Updated", HttpStatus.OK);
     }
 
-    @DeleteMapping("admin/categories/{id}")
-    public ResponseEntity<?> deleteCategory(@PathVariable("id") Long id) {
+    @DeleteMapping("admin/offices/{officeId}/categories/{id}")
+    public ResponseEntity<?> deleteCategory(@PathVariable("id") Long id, @PathVariable("officeId") Long officeId) {
         try{
-            bookingService.deleteCategory(id);
+            bookingService.deleteCategory(id, officeId);
         }
         catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
