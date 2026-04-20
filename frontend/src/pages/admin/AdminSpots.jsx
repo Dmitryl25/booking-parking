@@ -31,6 +31,7 @@ const AdminSpots = () => {
         startTime: '09:00',
         endTime: '18:00'
     });
+    const minDateStr = new Date().toISOString().split('T')[0];
 
     // Получение парковочных мест
     const fetchSpots = useCallback(async () => {
@@ -107,25 +108,40 @@ const AdminSpots = () => {
 
     // Блокирование парковочного места
     const handleForceBlock = async () => {
-        try {
-            // Склеиваем дату и время в формат 2026-04-20T09:00:00Z
-            const startIso = `${blockData.date}T${blockData.startTime}:00Z`;
-            const endIso = `${blockData.date}T${blockData.endTime}:00Z`;
+        const start = new Date(`${blockData.date}T${blockData.startTime}:00`);
+        const end = new Date(`${blockData.date}T${blockData.endTime}:00`);
 
+        const startISO = start.toISOString();
+        const endISO = end.toISOString();
+
+        if (start >= end) {
+            alert("Время конца не может быть раньше или равно времени начала");
+            return;
+        }
+
+        const category = allCategories.find(c => c.name === selectedSpot.category);
+        const categoryId = category ? category.id : null;
+
+        if (!categoryId) {
+            alert("Не удалось определить ID категории");
+            return;
+        }
+
+        try {
             const payload = {
                 officeId: parseInt(officeId),
-                categoryId: selectedSpot.categoryId,
+                categoryId: categoryId,
                 number: selectedSpot.number,
-                startTime: startIso,
-                endTime: endIso
+                startTime: startISO,
+                endTime: endISO
             };
 
             await adminApi.adminBookingsForcePost(payload);
             setBlockOpen(false);
-            alert(`Место ${selectedSpot.number} заблокировано`);
+            alert(`Место ${selectedSpot.number} успешно заблокировано`);
             fetchSpots();
         } catch {
-            alert("Ошибка при блокировке. Проверьте корректность временного интервала.");
+            alert("Ошибка при блокировке. Возможно, данные некорректны.");
         }
     };
 
@@ -257,6 +273,7 @@ const AdminSpots = () => {
                             type="date"
                             fullWidth
                             InputLabelProps={{ shrink: true }}
+                            inputProps={{ min: minDateStr }}
                             value={blockData.date}
                             onChange={(e) => setBlockData({ ...blockData, date: e.target.value })}
                         />
