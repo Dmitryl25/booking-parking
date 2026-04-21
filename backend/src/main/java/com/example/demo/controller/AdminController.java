@@ -176,7 +176,7 @@ public class AdminController {
     @PostMapping("admin/parking-spots/delete")
     public ResponseEntity<?> deletePost(@RequestBody AddSpot spot) {
         try{
-            bookingService.deleteSpot(spot);
+            bookingService.delete_Spot(spot);
         }
         catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -223,10 +223,10 @@ public class AdminController {
     }
 
     @PostMapping("admin/users/{id}/reset-password")
-    public ResponseEntity<?> resetPassword(@PathVariable("id") Long id, String password) {
+    public ResponseEntity<?> resetPassword(@PathVariable("id") Long id) {
         Map<String, ?> ans;
         try {
-            ans = bookingService.resetPassword(id, password);
+            ans = bookingService.resetPassword(id, bookingService.generatePassword());
         }
         catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);

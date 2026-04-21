@@ -167,7 +167,7 @@ public class BookingService {
         }
     }
 
-    public void deleteSpot(AddSpot addSpot){
+    public void delete_Spot(AddSpot addSpot){
         if (officeRepository.existsById(addSpot.getOfficeId())) {
             if (catRepository.existsById(addSpot.getCategoryId())) {
                 Office office = officeRepository.getReferenceById(addSpot.getOfficeId());
@@ -175,7 +175,7 @@ public class BookingService {
                 Category category = catRepository.getReferenceById(addSpot.getCategoryId());
                 if (categories.contains(category)) {
                     List<String> sp = Arrays.asList(category.getSpotsName().split(" "));
-                    if (!sp.contains(addSpot.getNumber())){
+                    if (sp.contains(addSpot.getNumber())){
                         category.setSpot_count(category.getSpot_count() - 1);
                         category.setSpotsName(category.getSpotsName().replace(addSpot.getNumber(), ""));
                         catRepository.save(category);
