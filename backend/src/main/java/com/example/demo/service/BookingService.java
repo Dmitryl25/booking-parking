@@ -178,6 +178,7 @@ public class BookingService {
                     if (sp.contains(addSpot.getNumber())){
                         category.setSpot_count(category.getSpot_count() - 1);
                         String new_name = category.getSpotsName().replace(addSpot.getNumber() + " ", "");
+                        new_name = new_name.replace(" " + addSpot.getNumber(), "");
                         new_name = new_name.replace(addSpot.getNumber(), "");
                         category.setSpotsName(new_name);
                         catRepository.save(category);
