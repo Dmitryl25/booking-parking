@@ -53,16 +53,6 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
     );
 
 
-    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END " +
-            "FROM Spot s " +
-            "WHERE s.category.id = :categoryId " +
-            "AND s.office.id = :officeId " +
-            "AND s.spot_number = :spot_number ")
-    boolean existsSpotByParameters(
-            @Param("categoryId") Long catId,
-            @Param("officeId") Long officeId,
-            @Param("spot_number") String spot_number
-    );
 
     @Query("SELECT CASE WHEN s.user.role = 'ROLE_ADMIN' THEN true ELSE false END " +
             "FROM Spot s " +
@@ -85,6 +75,19 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("data") ZonedDateTime data
     );
 
+    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END " +
+            "FROM Spot s " +
+            "WHERE s.category.id = :categoryId " +
+            "AND s.office.id = :officeId " +
+            "AND s.spot_number = :spot_number " +
+            "AND s.finish > :data")
+    boolean existsSpotByParameters(
+            @Param("categoryId") Long catId,
+            @Param("officeId") Long officeId,
+            @Param("spot_number") String spot_number,
+            @Param("data") ZonedDateTime time
+    );
+
     @Modifying
     @Transactional
     void deleteAllByUserId(Long id);
@@ -103,4 +106,5 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
     void deleteAllBySpot_number(@Param("spot_number") String  spot_number);
 
     void deleteAllByFinishBefore(ZonedDateTime time);
+
 }

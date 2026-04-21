@@ -40,7 +40,7 @@ public class BookingService {
     UserRepository userRepository;
 
     @Autowired
-    private  PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     public Office createOffice(OfficeView office_view) {
         if (officeRepository.existsByAddress(office_view.getAddress())) {
@@ -190,9 +190,7 @@ public class BookingService {
                         spotRepository.deleteAllBySpot_number(addSpot.getNumber());
                     }
                     else {
-                        throw new RuntimeException("Spot not found"
-
-                        );
+                        throw new RuntimeException("Spot not found");
                     }
                 }
                 else{
@@ -269,7 +267,7 @@ public class BookingService {
             if (sp.length == count){
                 spotNum = sp[i - 1];
             }
-            if (!spotRepository.existsSpotByParameters(spotRequest.getCategoryId(), spotRequest.getOfficeId(), spotNum)){
+            if (!spotRepository.existsSpotByParameters(spotRequest.getCategoryId(), spotRequest.getOfficeId(), spotNum, ZonedDateTime.now())){
                 SpotResponse spot = new SpotResponse();
                 spot.setNumber(spotNum);
                 spotResponses.add(spot);
@@ -383,7 +381,7 @@ public class BookingService {
                 GetOfficeBooking booking = new GetOfficeBooking();
                 booking.setNumber(name);
                 booking.setCategory(cat.getName());
-                if (spotRepository.existsSpotByParameters(cat.getId(), office_id, name)){
+                if (spotRepository.existsSpotByParameters(cat.getId(), office_id, name, ZonedDateTime.now())){
                     booking.setAvailable(!spotRepository.BookedByAdmin(cat.getId(), office_id, name));
                 }
                 else{
@@ -400,17 +398,17 @@ public class BookingService {
         List<CharacterRule> rules = Arrays.asList(
                 new CharacterRule(EnglishCharacterData.UpperCase, 1),
                 new CharacterRule(EnglishCharacterData.LowerCase, 1),
-                new CharacterRule(EnglishCharacterData.Digit, 1),
-                new CharacterRule(EnglishCharacterData.Special, 1)
+                new CharacterRule(EnglishCharacterData.Digit, 1)
+                //new CharacterRule("/!@#$%^&*()_+-", 1)
         );
         return generator.generatePassword(10, rules);
     }
 
-    public Map<String, ?> resetPassword(Long id, String password){
-        if (!userRepository.existsById(id)){
+    public Map<String, ?> resetPassword(Long id, String password) {
+        if (!userRepository.existsById(id)) {
             throw new IllegalArgumentException("User not found");
         }
-        User user = userRepository.getReferenceById(id);
+        User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
         return Map.of("id", id, "password", password);
