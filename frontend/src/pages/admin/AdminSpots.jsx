@@ -177,60 +177,70 @@ const AdminSpots = () => {
             {loading ? (
                 <Box display="flex" justifyContent="center" my={5}><CircularProgress /></Box>
             ) : (
-                Object.keys(groupedSpots).map((categoryName) => (
-                    <Box key={categoryName} sx={{ mb: 5 }}>
-                        <Typography variant="h6" fontWeight="700" color="primary" gutterBottom>
-                            {categoryName}
-                        </Typography>
-                        <Divider sx={{ mb: 3 }} />
-                        
-                        <Grid container spacing={2}>
-                            {groupedSpots[categoryName].map((spot) => (
-                                <Grid item xs={6} sm={4} md={2.4} key={spot.number} sx={{ display: 'flex' }}>
-                                    <Card sx={{ 
-                                        width: '100%',
-                                        borderRadius: 3, 
-                                        border: '1px solid #eee',
-                                        boxShadow: 'none',
-                                        backgroundColor: spot.available === false ? '#fff4f4' : '#fff',
-                                        transition: '0.3s',
-                                        '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }
-                                    }}>
-                                        <CardContent sx={{ textAlign: 'center', py: 3 }}>
-                                            <Typography variant="h5" fontWeight="800">
-                                                {spot.number}
-                                            </Typography>
-                                        </CardContent>
-                                        
-                                        <Divider />
-                                        
-                                        <Box display="flex" justifyContent="space-around" p={1}>
-                                            <IconButton 
-                                                size="small" 
-                                                color="primary"
-                                                onClick={() => {
-                                                setSelectedSpot(spot);
-                                                setBlockOpen(true);
-                                                }}
-                                                title="Заблокировать"
-                                            >
-                                                <BlockIcon fontSize="small" />
-                                            </IconButton>
-                                            <IconButton 
-                                                size="small" 
-                                                color="error"
-                                                onClick={() => handleDeleteSpot(spot)}
-                                                title="Удалить"
-                                            >
-                                                <DeleteIcon fontSize="small" />
-                                            </IconButton>
-                                        </Box>
-                                    </Card>
+                Object.keys(groupedSpots).map((categoryName) => {
+                    const spots = groupedSpots[categoryName];
+                    const isEmptyCategory = spots.length === 1 && spots[0].number === "";
+                    return (
+                        <Box key={categoryName} sx={{ mb: 5 }}>
+                            <Typography variant="h6" fontWeight="700" color="primary" gutterBottom>
+                                {categoryName}
+                            </Typography>
+                            <Divider sx={{ mb: 3 }} />
+                            
+                            {isEmptyCategory ? (
+                                <Typography variant="body1" sx={{ color: 'text.secondary', fontStyle: 'italic', ml: 2 }}>
+                                    В данной категории пока нет добавленных мест
+                                </Typography>
+                            ) : (
+                                <Grid container spacing={2}>
+                                    {groupedSpots[categoryName].map((spot) => (
+                                        <Grid item xs={6} sm={4} md={2.4} key={spot.number} sx={{ display: 'flex' }}>
+                                            <Card sx={{ 
+                                                width: '100%',
+                                                borderRadius: 3, 
+                                                border: '1px solid #eee',
+                                                boxShadow: 'none',
+                                                backgroundColor: spot.available === false ? '#fff4f4' : '#fff',
+                                                transition: '0.3s',
+                                                '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }
+                                            }}>
+                                                <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                                                    <Typography variant="h5" fontWeight="800">
+                                                        {spot.number}
+                                                    </Typography>
+                                                </CardContent>
+                                                
+                                                <Divider />
+                                                
+                                                <Box display="flex" justifyContent="space-around" p={1}>
+                                                    <IconButton 
+                                                        size="small" 
+                                                        color="primary"
+                                                        onClick={() => {
+                                                        setSelectedSpot(spot);
+                                                        setBlockOpen(true);
+                                                        }}
+                                                        title="Заблокировать"
+                                                    >
+                                                        <BlockIcon fontSize="small" />
+                                                    </IconButton>
+                                                    <IconButton 
+                                                        size="small" 
+                                                        color="error"
+                                                        onClick={() => handleDeleteSpot(spot)}
+                                                        title="Удалить"
+                                                    >
+                                                        <DeleteIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Box>
+                                            </Card>
+                                        </Grid>
+                                    ))}
                                 </Grid>
-                            ))}
-                        </Grid>
-                    </Box>
-                ))
+                            )}
+                        </Box>
+                    )
+                })
             )}
 
             {/* Модалка добавления места */}
