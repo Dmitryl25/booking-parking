@@ -92,7 +92,7 @@ const AdminUsers = () => {
         try {
             const res = await adminApi.adminUsersIdResetPasswordPost(selectedUser.id);
             // Запись нового пароля в состояние, чтобы он отобразился в поле
-            setFormData({ ...formData, tempPassword: res.data.newPassword });
+            setFormData({ ...formData, tempPassword: res.data.password });
         } catch {
             alert("Ошибка сброса пароля");
         }
