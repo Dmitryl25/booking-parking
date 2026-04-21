@@ -177,12 +177,16 @@ public class BookingService {
                     List<String> sp = Arrays.asList(category.getSpotsName().split(" "));
                     if (sp.contains(addSpot.getNumber())){
                         category.setSpot_count(category.getSpot_count() - 1);
-                        category.setSpotsName(category.getSpotsName().replace(addSpot.getNumber(), ""));
+                        String new_name = category.getSpotsName().replace(addSpot.getNumber() + " ", "");
+                        new_name = new_name.replace(addSpot.getNumber(), "");
+                        category.setSpotsName(new_name);
                         catRepository.save(category);
                         spotRepository.deleteAllBySpot_number(addSpot.getNumber());
                     }
                     else {
-                        throw new RuntimeException("Spot not found");
+                        throw new RuntimeException("Spot not found"
+
+                        );
                     }
                 }
                 else{
