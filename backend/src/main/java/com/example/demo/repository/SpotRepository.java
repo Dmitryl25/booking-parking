@@ -101,4 +101,6 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
     @Transactional
     @Query("DELETE FROM Spot s WHERE s.spot_number = :spot_number")
     void deleteAllBySpot_number(@Param("spot_number") String  spot_number);
+
+    void deleteAllByFinishBefore(ZonedDateTime time);
 }

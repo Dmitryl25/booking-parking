@@ -374,10 +374,10 @@ public class BookingService {
                 booking.setNumber(name);
                 booking.setCategory(cat.getName());
                 if (spotRepository.existsSpotByParameters(cat.getId(), office_id, name)){
-                    booking.setAvailable(spotRepository.BookedByAdmin(cat.getId(), office_id, name));
+                    booking.setAvailable(!spotRepository.BookedByAdmin(cat.getId(), office_id, name));
                 }
                 else{
-                    booking.setAvailable(false);
+                    booking.setAvailable(true);
                 }
                 ans.add(booking);
             }
