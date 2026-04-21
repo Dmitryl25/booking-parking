@@ -268,13 +268,13 @@ public class BookingService {
             if (sp.length == count){
                 spotNum = sp[i - 1];
             }
-            if (!spotRepository.existsSpotByParameters(spotRequest.getCategoryId(), spotRequest.getOfficeId(), i.toString())){
+            if (!spotRepository.existsSpotByParameters(spotRequest.getCategoryId(), spotRequest.getOfficeId(), spotNum)){
                 SpotResponse spot = new SpotResponse();
                 spot.setNumber(spotNum);
                 spotResponses.add(spot);
 
             }
-            else if (!spotRepository.isSpotBookedBetween(spotRequest.getCategoryId(), spotRequest.getOfficeId(), i.toString(), spotRequest.getStartTime(), spotRequest.getEndTime())) {
+            else if (!spotRepository.isSpotBookedBetween(spotRequest.getCategoryId(), spotRequest.getOfficeId(), spotNum, spotRequest.getStartTime(), spotRequest.getEndTime())) {
                 SpotResponse spot = new SpotResponse();
                 spot.setNumber(spotNum);
                 spotResponses.add(spot);
