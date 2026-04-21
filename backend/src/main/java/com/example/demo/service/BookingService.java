@@ -10,6 +10,7 @@ import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.OfficeRepository;
 import com.example.demo.repository.SpotRepository;
 import com.example.demo.repository.UserRepository;
+import org.passay.CharacterData;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.LengthRule;
@@ -395,11 +396,22 @@ public class BookingService {
 
     public String generatePassword(){
         PasswordGenerator generator = new PasswordGenerator();
+        CharacterData specialChars = new CharacterData() {
+            @Override
+            public String getErrorCode() {
+                return "";
+            }
+
+            @Override
+            public String getCharacters() {
+                return "/!@#$%^&*()_+-";
+            }
+        };
         List<CharacterRule> rules = Arrays.asList(
                 new CharacterRule(EnglishCharacterData.UpperCase, 1),
                 new CharacterRule(EnglishCharacterData.LowerCase, 1),
-                new CharacterRule(EnglishCharacterData.Digit, 1)
-                //new CharacterRule("/!@#$%^&*()_+-", 1)
+                new CharacterRule(EnglishCharacterData.Digit, 1),
+                new CharacterRule(specialChars, 1)
         );
         return generator.generatePassword(10, rules);
     }
