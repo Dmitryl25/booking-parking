@@ -13,7 +13,7 @@ All URIs are relative to *http://localhost:8080/api*
 |[**adminOfficesOfficeIdCategoriesPost**](#adminofficesofficeidcategoriespost) | **POST** /admin/offices/{officeId}/categories | Create category|
 |[**adminOfficesOfficeIdParkingSpotsGet**](#adminofficesofficeidparkingspotsget) | **GET** /admin/offices/{officeId}/parking-spots | Get parking spots|
 |[**adminOfficesPost**](#adminofficespost) | **POST** /admin/offices | Create office|
-|[**adminParkingSpotsDelete**](#adminparkingspotsdelete) | **DELETE** /admin/parking-spots | Delete parking spot|
+|[**adminParkingSpotsDeletePost**](#adminparkingspotsdeletepost) | **POST** /admin/parking-spots/delete | Delete parking spot|
 |[**adminParkingSpotsPost**](#adminparkingspotspost) | **POST** /admin/parking-spots | Create parking spot|
 |[**adminUsersGet**](#adminusersget) | **GET** /admin/users | Get all users|
 |[**adminUsersIdDelete**](#adminusersiddelete) | **DELETE** /admin/users/{id} | Delete user|
@@ -349,7 +349,7 @@ void (empty response body)
 |**200** | Updated |  -  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden (not admin) |  -  |
-|**404** | Spot not found |  -  |
+|**404** | Office not found |  -  |
 |**409** | Category with this name already exists in this office |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -522,8 +522,8 @@ const { status, data } = await apiInstance.adminOfficesPost(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **adminParkingSpotsDelete**
-> adminParkingSpotsDelete(adminParkingSpotsPostRequest)
+# **adminParkingSpotsDeletePost**
+> adminParkingSpotsDeletePost(adminParkingSpotsPostRequest)
 
 Удаление парковочного места. Только для администратора.
 
@@ -541,7 +541,7 @@ const apiInstance = new AdminApi(configuration);
 
 let adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest; //
 
-const { status, data } = await apiInstance.adminParkingSpotsDelete(
+const { status, data } = await apiInstance.adminParkingSpotsDeletePost(
     adminParkingSpotsPostRequest
 );
 ```

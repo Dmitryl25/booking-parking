@@ -502,10 +502,10 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        adminParkingSpotsDelete: async (adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        adminParkingSpotsDeletePost: async (adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'adminParkingSpotsPostRequest' is not null or undefined
-            assertParamExists('adminParkingSpotsDelete', 'adminParkingSpotsPostRequest', adminParkingSpotsPostRequest)
-            const localVarPath = `/admin/parking-spots`;
+            assertParamExists('adminParkingSpotsDeletePost', 'adminParkingSpotsPostRequest', adminParkingSpotsPostRequest)
+            const localVarPath = `/admin/parking-spots/delete`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -513,7 +513,7 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -895,10 +895,10 @@ export const AdminApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async adminParkingSpotsDelete(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.adminParkingSpotsDelete(adminParkingSpotsPostRequest, options);
+        async adminParkingSpotsDeletePost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminParkingSpotsDeletePost(adminParkingSpotsPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminParkingSpotsDelete']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminParkingSpotsDeletePost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -1089,8 +1089,8 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        adminParkingSpotsDelete(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.adminParkingSpotsDelete(adminParkingSpotsPostRequest, options).then((request) => request(axios, basePath));
+        adminParkingSpotsDeletePost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.adminParkingSpotsDeletePost(adminParkingSpotsPostRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Создание нового парковочного места. Только для администратора.
@@ -1269,8 +1269,8 @@ export class AdminApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public adminParkingSpotsDelete(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig) {
-        return AdminApiFp(this.configuration).adminParkingSpotsDelete(adminParkingSpotsPostRequest, options).then((request) => request(this.axios, this.basePath));
+    public adminParkingSpotsDeletePost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminParkingSpotsDeletePost(adminParkingSpotsPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

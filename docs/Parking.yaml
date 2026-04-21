@@ -640,7 +640,7 @@ paths:
         '403':
           description: Forbidden (not admin)
         '404':
-          description: Spot not found
+          description: Office not found
         '409':
           description: Category with this name already exists in this office
     delete:
@@ -704,8 +704,8 @@ paths:
           description: Office or category not found
         '409':
           description: Spot with such number already exists in this office
-
-    delete:
+  /admin/parking-spots/delete:
+    post:
       summary: Delete parking spot
       description: Удаление парковочного места. Только для администратора.
       tags: [Admin]

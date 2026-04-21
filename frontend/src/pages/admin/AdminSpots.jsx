@@ -100,7 +100,7 @@ const AdminSpots = () => {
 
         if (window.confirm(`Вы действительно хотите удалить место ${spot.number}?`)) {
             try {
-                await adminApi.adminParkingSpotsDelete({
+                await adminApi.adminParkingSpotsDeletePost({
                     number: spot.number,
                     categoryId: parseInt(categoryId),
                     officeId: parseInt(officeId)
