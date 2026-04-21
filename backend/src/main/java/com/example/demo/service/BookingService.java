@@ -71,6 +71,7 @@ public class BookingService {
             throw new RuntimeException("Office not found");
         }
         spotRepository.deleteAllByOfficeId(id);
+        catRepository.deleteAllByOfficeId(id);
         officeRepository.deleteById(id);
     }
 
