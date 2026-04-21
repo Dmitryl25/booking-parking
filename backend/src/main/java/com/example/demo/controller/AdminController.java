@@ -173,7 +173,7 @@ public class AdminController {
         return new ResponseEntity<>("Created", HttpStatus.CREATED);
     }
 
-    @DeleteMapping("admin/parking-spots")
+    @PostMapping("admin/parking-spots/delete")
     public ResponseEntity<?> deletePost(@RequestBody AddSpot spot) {
         try{
             bookingService.deleteSpot(spot);
