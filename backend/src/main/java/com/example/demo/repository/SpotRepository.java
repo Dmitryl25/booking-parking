@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.SpotInfo;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.Office;
 import com.example.demo.entity.Spot;
@@ -13,10 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public interface SpotRepository extends JpaRepository<Spot, Long> {
 
+    @Transactional(readOnly = true)
     @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END " +
             "FROM Spot s " +
             "WHERE s.category.id = :categoryId " +
@@ -53,7 +56,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
     );
 
 
-
+    @Transactional(readOnly = true)
     @Query("SELECT CASE WHEN s.user.role = 'ROLE_ADMIN' THEN true ELSE false END " +
             "FROM Spot s " +
             "WHERE s.category.id = :categoryId " +
@@ -65,7 +68,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("spot_number") String spot_number
     );
 
-
+    @Transactional(readOnly = true)
     @Query("SELECT s " +
             "FROM Spot s " +
             "WHERE s.user.id = :userId " +
@@ -75,6 +78,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("data") ZonedDateTime data
     );
 
+    @Transactional(readOnly = true)
     @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END " +
             "FROM Spot s " +
             "WHERE s.category.id = :categoryId " +
@@ -102,9 +106,26 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
 
     @Modifying
     @Transactional
-    @Query("DELETE FROM Spot s WHERE s.spot_number = :spot_number")
-    void deleteAllBySpot_number(@Param("spot_number") String  spot_number);
+    @Query("DELETE FROM Spot s WHERE s.spot_number = :spot_number AND s.office.id = :office_id AND s.category.id = :category_id")
+    void deleteAllBySpot_number(@Param("spot_number") String  spot_number,  @Param("category_id") Long category_id, @Param("office_id") Long office_id);
 
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Spot s WHERE s.spot_number = :spotNumber AND s.office.id = :officeId AND s.category.id = :categoryId AND s.user.id = :userId")
+    void deleteAllByParams(@Param("spotNumber") String  spotNumber,  @Param("categoryId") Long categoryId, @Param("officeId") Long officeId,  @Param("userId") Long userId);
+
+
+    @Transactional(readOnly = true)
+    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM Spot s WHERE s.spot_number = :spotNumber AND s.office.id = :officeId AND s.category.id = :categoryId AND s.user.id = :userId")
+    boolean existSpotForUnblock(@Param("spotNumber") String  spotNumber,  @Param("categoryId") Long categoryId, @Param("officeId") Long officeId,  @Param("userId") Long userId);
+
+
+    @Transactional(readOnly = true)
+    @Query("SELECT s.start, s.finish FROM Spot s WHERE s.spot_number = :spotNumber AND s.office.id = :officeId AND s.category.id = :categoryId AND s.user.id = :userId")
+    List<SpotInfo> getSpotInfo(@Param("spotNumber") String  spotNumber, @Param("categoryId") Long categoryId, @Param("officeId") Long officeId, @Param("userId") Long userId);
+
+    @Modifying
+    @Transactional
     void deleteAllByFinishBefore(ZonedDateTime time);
 
 }

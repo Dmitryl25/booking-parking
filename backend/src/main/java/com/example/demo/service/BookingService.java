@@ -188,7 +188,7 @@ public class BookingService {
                         new_name = new_name.replace(addSpot.getNumber(), "");
                         category.setSpotsName(new_name);
                         catRepository.save(category);
-                        spotRepository.deleteAllBySpot_number(addSpot.getNumber());
+                        spotRepository.deleteAllBySpot_number(addSpot.getNumber(), addSpot.getCategoryId(), addSpot.getOfficeId());
                     }
                     else {
                         throw new RuntimeException("Spot not found");
@@ -369,6 +369,35 @@ public class BookingService {
         spotRepository.DeleteSpotBookedBetween(spotRequest.getCategoryId(), spotRequest.getOfficeId(), spotRequest.getNumber(), spotRequest.getStartTime(), spotRequest.getEndTime());
         spotRepository.save(spot);
     }
+
+    public void unblockSpot(AddSpot spotRequest, String email) {
+        User user = userRepository.getReferenceByEmail(email);
+        Long userId = user.getId();
+        Category cat = catRepository.getReferenceById(spotRequest.getCategoryId());
+        if (!spotRepository.existSpotForUnblock(spotRequest.getNumber(), spotRequest.getCategoryId(), spotRequest.getOfficeId(), userId)){
+            throw new RuntimeException("Spot not found");
+        }
+        if (!cat.getOffice().getId().equals(spotRequest.getOfficeId())) {
+            throw new IllegalArgumentException("Invalid request");
+        }
+        spotRepository.deleteAllByParams(spotRequest.getNumber(), spotRequest.getCategoryId(), spotRequest.getOfficeId(), userId);
+    }
+
+    public List<SpotInfo> getSpotInfo(AddSpot spotRequest, String email) {
+        User user = userRepository.getReferenceByEmail(email);
+        Long userId = user.getId();
+        Category cat = catRepository.getReferenceById(spotRequest.getCategoryId());
+        if (!spotRepository.existSpotForUnblock(spotRequest.getNumber(), spotRequest.getCategoryId(), spotRequest.getOfficeId(), userId)){
+            throw new RuntimeException("Spot not found");
+        }
+        if (!cat.getOffice().getId().equals(spotRequest.getOfficeId())) {
+            throw new IllegalArgumentException("Invalid request");
+        }
+        List<SpotInfo> info = spotRepository.getSpotInfo(spotRequest.getNumber(), spotRequest.getCategoryId(), spotRequest.getOfficeId(), userId);
+        return info;
+    }
+
+
 
     public List<GetOfficeBooking> getOfficeBooking(Long office_id) {
         if (!officeRepository.existsById(office_id)) {

@@ -14,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -201,6 +202,37 @@ public class AdminController {
         }
 
         return new ResponseEntity<>("Blocked", HttpStatus.OK);
+    }
+
+    @PostMapping("admin/bookings/unblock")
+    public ResponseEntity<?> unblockPost(@RequestBody AddSpot booking, @AuthenticationPrincipal UserDetails userDetails){
+        try{
+            bookingService.unblockSpot(booking, userDetails.getUsername());
+        }
+        catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>("Unblocked", HttpStatus.OK);
+    }
+
+    @PostMapping("admin/bookings/getinfo")
+    public ResponseEntity<?> getSpotInfo(@RequestBody AddSpot booking, @AuthenticationPrincipal UserDetails userDetails){
+        List<SpotInfo> ans;
+        try{
+            ans = bookingService.getSpotInfo(booking, userDetails.getUsername());
+        }
+        catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(ans.get(0), HttpStatus.OK);
     }
 
     @GetMapping("admin/offices/{officeId}/parking-spots")
