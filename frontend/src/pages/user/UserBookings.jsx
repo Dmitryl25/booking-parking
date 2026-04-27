@@ -3,7 +3,7 @@ import { Container, Typography, Button, Card, Grid, Box, Divider, Stack, Circula
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CloseIcon from '@mui/icons-material/Close';
 import { userApi } from "../../api/index";
 import { Link } from 'react-router-dom';
 
@@ -22,8 +22,8 @@ const UserBookings = () => {
                     new Date(a.startTime) - new Date(b.startTime)
                 })
                 setBookings(sorted);
-            } catch (err) {
-                //console.error("Не удалось загрузить список бронирований", err)
+            } catch {
+                console.error("Не удалось загрузить список бронирований")
             } finally {
                 setLoading(false);
             }
@@ -127,7 +127,7 @@ const UserBookings = () => {
                                         <Button 
                                             size="small" 
                                             color="error" 
-                                            startIcon={<DeleteOutlineIcon />}
+                                            startIcon={<CloseIcon />}
                                             onClick={() => handleCancel(booking.id)}
                                             sx={{ fontWeight: 600, textTransform: 'none' }}
                                         >
@@ -147,7 +147,7 @@ const UserBookings = () => {
                         px: 2, 
                         bgcolor: '#f8f9fa', 
                         borderRadius: 4, 
-                        border: '2px dashed #e0e0e0' 
+                        border: '1px dashed #e0e0e0' 
                     }}
                 >
                     <Typography variant="h6" color="text.secondary" gutterBottom>

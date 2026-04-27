@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Container, Typography, Button, Grid, Card, CardContent, Box, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Divider, MenuItem, Stack, CircularProgress } from '@mui/material';
+import { Container, Typography, Button, Grid, Card, CardContent, Box, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Divider, MenuItem, Stack, CircularProgress, Paper } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import BlockIcon from '@mui/icons-material/Block';
+import InfoIcon from '@mui/icons-material/Info';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 import { adminApi, commonApi } from "../../api/index";
 
 const AdminSpots = () => {
@@ -30,6 +33,11 @@ const AdminSpots = () => {
         endTime: '18:00'
     });
     const minDateStr = new Date().toISOString().split('T')[0];
+
+    // Состояния для модального окна информации о блокировках
+    const [infoOpen, setInfoOpen] = useState(false);
+    const [blockingInfo, setBlockingInfo] = useState(null);
+    const [infoLoading, setInfoLoading] = useState(false);
 
     // Получение парковочных мест
     const fetchSpots = useCallback(async () => {
@@ -151,6 +159,48 @@ const AdminSpots = () => {
         }
     };
 
+    // Получение информации о блокировке
+    const handleFetchInfo = async (spot) => {
+        setSelectedSpot(spot);
+        setInfoLoading(true);
+        setInfoOpen(true);
+
+        const category = allCategories.find(c => c.name === spot.category);
+        
+        try {
+            const response = await adminApi.adminBookingsGetinfoPost({
+                officeId: parseInt(officeId),
+                categoryId: category?.id,
+                number: spot.number
+            });
+            setBlockingInfo(response.data);
+        } catch {
+            console.error("Ошибка получения инфо");
+            setBlockingInfo(null);
+        } finally {
+            setInfoLoading(false);
+        }
+    };
+
+    // Отмена блокировки (разблокировка)
+    const handleUnblock = async () => {
+        if (!window.confirm("Вы уверены, что хотите разблокировать это место?")) return;
+
+        const category = allCategories.find(c => c.name === selectedSpot.category);
+
+        try {
+            await adminApi.adminBookingsUnblockPost({
+                officeId: parseInt(officeId),
+                categoryId: category?.id,
+                number: selectedSpot.number
+            });
+            setInfoOpen(false);
+            fetchSpots();
+        } catch {
+            alert("Ошибка при разблокировке");
+        }
+    };
+
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Button 
@@ -174,8 +224,43 @@ const AdminSpots = () => {
                 </Button>
             </Box>
 
+
             {loading ? (
                 <Box display="flex" justifyContent="center" my={5}><CircularProgress /></Box>
+            ) : allCategories.length === 0 ? (
+                <Paper 
+                    sx={{ 
+                        p: 5, 
+                        textAlign: 'center', 
+                        borderRadius: 4, 
+                        bgcolor: '#f8f9fa', 
+                        border: '1px dashed #e0e0e0',
+                        mt: 4,
+                        boxShadow: 'none'
+                    }}
+                >
+                    <Typography variant="h6" fontWeight="600" color="text.secondary" gutterBottom>
+                        В этом офисе пока нет парковочных мест
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400, mx: 'auto' }}>
+                        Добавьте категории в настройках офиса, чтобы управлять парковочными местами.
+                    </Typography>
+                    <Button 
+                        variant="outlined" 
+                        onClick={() => navigate('/admin/offices')}
+                    >
+                        К списку офисов
+                    </Button>
+                </Paper>
+            ) : Object.keys(groupedSpots).length === 0 ? (
+                <Box sx={{ textAlign: 'center', mt: 8 }}>
+                    <Typography variant="h6" color="text.secondary">
+                        В офисе пока нет парковочных мест
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Нажмите кнопку «Добавить место», чтобы добавить парковочные места.
+                    </Typography>
+                </Box>
             ) : (
                 Object.keys(groupedSpots).map((categoryName) => {
                     const spots = groupedSpots[categoryName];
@@ -193,43 +278,41 @@ const AdminSpots = () => {
                                 </Typography>
                             ) : (
                                 <Grid container spacing={2}>
-                                    {groupedSpots[categoryName].map((spot) => (
+                                    {spots.map((spot) => (
                                         <Grid item xs={6} sm={4} md={2.4} key={spot.number} sx={{ display: 'flex' }}>
                                             <Card sx={{ 
                                                 width: '100%',
                                                 borderRadius: 3, 
-                                                border: '1px solid #eee',
                                                 boxShadow: 'none',
-                                                backgroundColor: spot.available === false ? '#fff4f4' : '#fff',
-                                                transition: '0.3s',
-                                                '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }
+                                                border: spot.available === false ? '1px solid #ef5350' : '1px solid #eee',
+                                                background: spot.available === false 
+                                                    ? 'linear-gradient(45deg, #fffcfc 25%, #fff5f5 25%, #fff5f5 50%, #fffcfc 50%, #fffcfc 75%, #fff5f5 75%, #fff5f5 100%)'
+                                                    : '#fff',
+                                                backgroundSize: '20px 20px',
                                             }}>
-                                                <CardContent sx={{ textAlign: 'center', py: 3 }}>
-                                                    <Typography variant="h5" fontWeight="800">
-                                                        {spot.number}
-                                                    </Typography>
+                                                <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                                                    <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                                                        {spot.available === false && <LockIcon sx={{ fontSize: 20, color: 'error.main' }} />}
+                                                        <Typography variant="h5" fontWeight="800" color={spot.available === false ? 'error.main' : 'text.primary'}>
+                                                            {spot.number}
+                                                        </Typography>
+                                                    </Box>
                                                 </CardContent>
                                                 
                                                 <Divider />
                                                 
-                                                <Box display="flex" justifyContent="space-around" p={1}>
-                                                    <IconButton 
-                                                        size="small" 
-                                                        color="primary"
-                                                        onClick={() => {
-                                                        setSelectedSpot(spot);
-                                                        setBlockOpen(true);
-                                                        }}
-                                                        title="Заблокировать"
-                                                    >
-                                                        <BlockIcon fontSize="small" />
-                                                    </IconButton>
-                                                    <IconButton 
-                                                        size="small" 
-                                                        color="error"
-                                                        onClick={() => handleDeleteSpot(spot)}
-                                                        title="Удалить"
-                                                    >
+                                                <Box display="flex" justifyContent="space-around" p={0.5} bgcolor="rgba(255,255,255,0.6)">
+                                                    {spot.available === false ? (
+                                                        <IconButton color="info" onClick={() => handleFetchInfo(spot)} title="Информация о блокировке">
+                                                            <InfoIcon fontSize="small" />
+                                                        </IconButton>
+                                                    ) : (
+                                                        <IconButton color="primary" onClick={() => { setSelectedSpot(spot); setBlockOpen(true); }} title="Заблокировать">
+                                                            <BlockIcon fontSize="small" />
+                                                        </IconButton>
+                                                    )}
+                                                    
+                                                    <IconButton color="error" onClick={() => handleDeleteSpot(spot)} title="Удалить место">
                                                         <DeleteIcon fontSize="small" />
                                                     </IconButton>
                                                 </Box>
@@ -243,7 +326,7 @@ const AdminSpots = () => {
                 })
             )}
 
-            {/* Модалка добавления места */}
+            {/* Модальное окно добавления места */}
             <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Новое парковочное место</DialogTitle>
                 <DialogContent dividers>
@@ -319,6 +402,59 @@ const AdminSpots = () => {
                     <Button onClick={() => setBlockOpen(false)}>Отмена</Button>
                     <Button variant="contained" color="error" onClick={handleForceBlock}>
                         Заблокировать
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Модальное окно информации о блокировке */}
+            <Dialog open={infoOpen} onClose={() => setInfoOpen(false)} fullWidth maxWidth="xs">
+                <DialogTitle sx={{ fontWeight: 800 }}>Блокировка места {selectedSpot?.number}</DialogTitle>
+                <DialogContent dividers>
+                    {infoLoading ? (
+                        <Box display="flex" justifyContent="center" p={3}><CircularProgress size={24} /></Box>
+                    ) : blockingInfo ? (
+                        <Stack spacing={2} sx={{ mt: 1 }}>
+                            <Box sx={{ 
+                                p: 2, 
+                                bgcolor: '#f8f9fa', 
+                                borderRadius: 2, 
+                                border: '1px solid #eee',
+                                textAlign: 'center'
+                            }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 1 }}>
+                                    ПЕРИОД ДЕЙСТВИЯ
+                                </Typography>
+                                
+                                <Typography variant="h6" sx={{ mt: 1, fontWeight: 700 }}>
+                                    {new Date(blockingInfo.startTime).toLocaleDateString('ru-RU', { 
+                                        day: '2-digit', 
+                                        month: '2-digit', 
+                                        year: 'numeric' 
+                                    })}
+                                </Typography>
+                                
+                                <Typography variant="body1" color="text.secondary">
+                                    с {new Date(blockingInfo.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 
+                                    до {new Date(blockingInfo.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </Typography>
+                            </Box>
+                        </Stack>
+                    ) : (
+                        <Typography p={2} textAlign="center">Информация отсутствует</Typography>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
+                    <Button 
+                        color="error" 
+                        variant="contained"
+                        startIcon={<LockOpenIcon />} 
+                        onClick={handleUnblock}
+                        sx={{ borderRadius: 2 }}
+                    >
+                        Разблокировать
+                    </Button>
+                    <Button onClick={() => setInfoOpen(false)} variant="outlined" sx={{ borderRadius: 2 }}>
+                        Закрыть
                     </Button>
                 </DialogActions>
             </Dialog>

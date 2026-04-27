@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Container, Typography, Button, Card, CardActions, CardContent, Grid, IconButton, Box, TextField, Dialog, DialogContent, DialogTitle, DialogActions } from '@mui/material';
+import { Container, Typography, Button, Card, CardActions, CardContent, Grid, IconButton, Box, TextField, Dialog, DialogContent, DialogTitle, DialogActions, Paper, CircularProgress } from '@mui/material';
 import { useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -91,76 +91,93 @@ const AdminOffices = () => {
                 </Button>
             </Box>
 
-            {offices.length === 0 && !loading && (
-                <Typography variant="body1" color="text.secondary" textAlign="center" mt={10}>
-                    Список офисов пуст. Добавьте первый офис!
-                </Typography>
-            )}
+            {loading ? (
+                <Box display="flex" justifyContent="center" my={5}><CircularProgress /></Box>
+            ) : offices.length === 0 ? (
+                <Paper 
+                    sx={{ 
+                        p: 5, 
+                        textAlign: 'center', 
+                        borderRadius: 4, 
+                        bgcolor: '#f8f9fa', 
+                        border: '1px dashed #e0e0e0',
+                        mt: 4,
+                        boxShadow: 'none'
+                    }}
+                >
+                    <Typography variant="h6" fontWeight="600" color="text.secondary" gutterBottom>
+                        Список офисов пуст
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400, mx: 'auto' }}>
+                        В систему еще не добавили ни одного офиса. Нажмите кнопку выше, чтобы создать.
+                    </Typography>
+                </Paper>
+            ) : (
+                <Grid container spacing={3}>
+                    {offices.map((office) => (
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={office.id}>
+                            <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                <CardContent sx={{ flexGrow: 1 }}>
+                                    <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                                        <Typography 
+                                            variant="h6"
+                                            gutterBottom 
+                                            sx={{ lineHeight: 1.2, mr: 1, wordBreak: 'break-word', flexGrow: 1, fontWeight: 600 }}
+                                        >
+                                            {office.address}
+                                        </Typography>
 
-            <Grid container spacing={3}>
-                {offices.map((office) => (
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={office.id}>
-                        <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                            <CardContent sx={{ flexGrow: 1 }}>
-                                <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                                    <Typography 
-                                        variant="h6"
-                                        gutterBottom 
-                                        sx={{ lineHeight: 1.2, mr: 1, wordBreak: 'break-word', flexGrow: 1, fontWeight: 600 }}
-                                    >
-                                        {office.address}
+                                        <IconButton 
+                                            size="small" 
+                                            color="warning" 
+                                            onClick={() => handleOpenEdit(office)}
+                                            sx={{ mt: -0.5, mr: -0.5 }}
+                                        >
+                                            <EditIcon fontSize="small" />
+                                        </IconButton>
+                                    </Box>
+
+                                    <Typography variant="body2" color="text.secondary">
+                                        ID офиса: {office.id}
                                     </Typography>
+                                </CardContent>
 
-                                    <IconButton 
-                                        size="small" 
-                                        color="warning" 
-                                        onClick={() => handleOpenEdit(office)}
-                                        sx={{ mt: -0.5, mr: -0.5 }}
-                                    >
-                                        <EditIcon fontSize="small" />
+                                <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2, flexWrap: 'wrap', gap: 1 }}>
+                                    <Box display="flex" gap={1} flexWrap="wrap">
+                                        <Button 
+                                            size="small" 
+                                            variant="outlined" 
+                                            color="primary" 
+                                            startIcon={<CategoryIcon />}
+                                            onClick={() => navigate(`/admin/offices/${office.id}/categories`, { 
+                                                state: { officeAddress: office.address } 
+                                            })}
+                                            sx={{ textTransform: 'none', borderRadius: 2 }}
+                                        >
+                                            Категории
+                                        </Button>
+                                        
+                                        <Button 
+                                            size="small" 
+                                            variant="outlined" 
+                                            color="secondary" 
+                                            startIcon={<DirectionsCarIcon />}
+                                            onClick={() => navigate(`/admin/offices/${office.id}/spots`)}
+                                            sx={{ textTransform: 'none', borderRadius: 2 }}
+                                        >
+                                            Места
+                                        </Button>
+                                    </Box>
+
+                                    <IconButton color="error" onClick={() => handleDeleteOffice(office.id)}>
+                                        <DeleteIcon />
                                     </IconButton>
-                                </Box>
-
-                                <Typography variant="body2" color="text.secondary">
-                                    ID офиса: {office.id}
-                                </Typography>
-                            </CardContent>
-
-                            <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2, flexWrap: 'wrap', gap: 1 }}>
-                                <Box display="flex" gap={1} flexWrap="wrap">
-                                    <Button 
-                                        size="small" 
-                                        variant="outlined" 
-                                        color="primary" 
-                                        startIcon={<CategoryIcon />}
-                                        onClick={() => navigate(`/admin/offices/${office.id}/categories`, { 
-                                            state: { officeAddress: office.address } 
-                                        })}
-                                        sx={{ textTransform: 'none', borderRadius: 2 }}
-                                    >
-                                        Категории
-                                    </Button>
-                                    
-                                    <Button 
-                                        size="small" 
-                                        variant="outlined" 
-                                        color="secondary" 
-                                        startIcon={<DirectionsCarIcon />}
-                                        onClick={() => navigate(`/admin/offices/${office.id}/spots`)}
-                                        sx={{ textTransform: 'none', borderRadius: 2 }}
-                                    >
-                                        Места
-                                    </Button>
-                                </Box>
-
-                                <IconButton color="error" onClick={() => handleDeleteOffice(office.id)}>
-                                    <DeleteIcon />
-                                </IconButton>
-                            </CardActions>
-                        </Card>
-                    </Grid>
-                ))}
-            </Grid>
+                                </CardActions>
+                            </Card>
+                        </Grid>
+                    ))}
+                </Grid>
+            )}
 
             {/* Модальное окно добавления */}
             <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
