@@ -5,6 +5,8 @@ All URIs are relative to *http://localhost:8080/api*
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
 |[**adminBookingsForcePost**](#adminbookingsforcepost) | **POST** /admin/bookings/force | Spot blocking|
+|[**adminBookingsGetinfoPost**](#adminbookingsgetinfopost) | **POST** /admin/bookings/getinfo | blocked spot information|
+|[**adminBookingsUnblockPost**](#adminbookingsunblockpost) | **POST** /admin/bookings/unblock | Spot unblocking|
 |[**adminGeneratePasswordPost**](#admingeneratepasswordpost) | **POST** /admin/generate-password | Generate random password|
 |[**adminOfficesIdDelete**](#adminofficesiddelete) | **DELETE** /admin/offices/{id} | Delete office|
 |[**adminOfficesIdPut**](#adminofficesidput) | **PUT** /admin/offices/{id} | Update office|
@@ -70,6 +72,118 @@ void (empty response body)
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | Blocked |  -  |
+|**400** | Invalid request |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden (not admin) |  -  |
+|**404** | Spot not found |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminBookingsGetinfoPost**
+> AdminBookingsGetinfoPost200Response adminBookingsGetinfoPost(adminBookingsUnblockPostRequest)
+
+Получение инфы о заблокированном месте.
+
+### Example
+
+```typescript
+import {
+    AdminApi,
+    Configuration,
+    AdminBookingsUnblockPostRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AdminApi(configuration);
+
+let adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest; //
+
+const { status, data } = await apiInstance.adminBookingsGetinfoPost(
+    adminBookingsUnblockPostRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **adminBookingsUnblockPostRequest** | **AdminBookingsUnblockPostRequest**|  | |
+
+
+### Return type
+
+**AdminBookingsGetinfoPost200Response**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Blocked spot list |  -  |
+|**400** | Invalid request |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden (not admin) |  -  |
+|**404** | Spot not found |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminBookingsUnblockPost**
+> adminBookingsUnblockPost(adminBookingsUnblockPostRequest)
+
+Разблокировка места.
+
+### Example
+
+```typescript
+import {
+    AdminApi,
+    Configuration,
+    AdminBookingsUnblockPostRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AdminApi(configuration);
+
+let adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest; //
+
+const { status, data } = await apiInstance.adminBookingsUnblockPost(
+    adminBookingsUnblockPostRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **adminBookingsUnblockPostRequest** | **AdminBookingsUnblockPostRequest**|  | |
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Unblocked |  -  |
 |**400** | Invalid request |  -  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden (not admin) |  -  |

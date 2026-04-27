@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Container, Typography, Button, Card, CardActions, CardContent, Grid, IconButton, Box, TextField, Dialog, DialogContent, DialogTitle, DialogActions, Divider } from '@mui/material';
+import { Container, Typography, Button, Card, CardActions, CardContent, Grid, IconButton, Box, TextField, Dialog, DialogContent, DialogTitle, DialogActions, Divider, Paper, CircularProgress } from '@mui/material';
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from "@mui/icons-material/Edit";
@@ -128,85 +128,102 @@ const AdminCategories = () => {
                 </Button>
             </Box>
 
-            {categories.length === 0 && !loading && (
-                <Typography variant="body1" color="text.secondary" textAlign="center" mt={10}>
-                    В этом офисе пока нет ни одной категории парковки.
-                </Typography>
-            )}
-
-            <Grid container spacing={3} sx={{ width: '100%', margin: 0 }}> 
-                {categories.map((cat) => (
-                    <Grid 
-                        item 
-                        xs={12} 
-                        sm={6} 
-                        md={4} 
-                        key={cat.id} 
-                        sx={{ 
-                            display: 'flex',
-                            flexBasis: { xs: '100%', sm: '50%', md: '33.33%' },
-                            maxWidth: { xs: '100%', sm: '50%', md: '33.33%' }
-                        }}
-                    >
-                        <Card sx={{ 
-                            width: '100%',
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            borderRadius: 3, 
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                            border: '1px solid #f0f0f0'
-                        }}>
-                            <CardContent sx={{ 
-                                flexGrow: 1, 
+            {loading ? (
+                <Box display="flex" justifyContent="center" my={5}><CircularProgress /></Box>
+            ) : categories.length === 0 ? (
+                <Paper 
+                    sx={{ 
+                        p: 5, 
+                        textAlign: 'center', 
+                        borderRadius: 4, 
+                        bgcolor: '#f8f9fa', 
+                        border: '1px dashed #e0e0e0',
+                        mt: 4,
+                        boxShadow: 'none'
+                    }}
+                >
+                    <Typography variant="h6" fontWeight="600" color="text.secondary" gutterBottom>
+                        Список категорий пуст
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400, mx: 'auto' }}>
+                        В этом офисе еще нет категорий парковок. Добавьте категорию и её парковочные места.
+                    </Typography>
+                </Paper>
+            ) : (
+                <Grid container spacing={3} sx={{ width: '100%', margin: 0 }}> 
+                    {categories.map((cat) => (
+                        <Grid 
+                            item 
+                            xs={12} 
+                            sm={6} 
+                            md={4} 
+                            key={cat.id} 
+                            sx={{ 
+                                display: 'flex',
+                                flexBasis: { xs: '100%', sm: '50%', md: '33.33%' },
+                                maxWidth: { xs: '100%', sm: '50%', md: '33.33%' }
+                            }}
+                        >
+                            <Card sx={{ 
+                                width: '100%',
                                 display: 'flex', 
-                                flexDirection: 'column',
-                                alignItems: 'flex-start',
+                                flexDirection: 'column', 
+                                borderRadius: 3, 
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                                border: '1px solid #f0f0f0'
                             }}>
-                                <Typography 
-                                    variant="h6" 
-                                    fontWeight="700" 
-                                    textAlign="left"
-                                    sx={{
-                                        wordBreak: 'break-word',
-                                        hyphens: 'auto',
-                                        width: '100%'
-                                    }}
-                                >
-                                    {cat.name}
-                                </Typography>
-                            </CardContent>
+                                <CardContent sx={{ 
+                                    flexGrow: 1, 
+                                    display: 'flex', 
+                                    flexDirection: 'column',
+                                    alignItems: 'flex-start',
+                                }}>
+                                    <Typography 
+                                        variant="h6" 
+                                        fontWeight="700" 
+                                        textAlign="left"
+                                        sx={{
+                                            wordBreak: 'break-word',
+                                            hyphens: 'auto',
+                                            width: '100%'
+                                        }}
+                                    >
+                                        {cat.name}
+                                    </Typography>
+                                </CardContent>
 
-                            <Divider />
-                            
-                            <CardActions sx={{ justifyContent: 'center', p: 1.5 }}>
-                                <Button 
-                                    size="small" 
-                                    variant="text"
-                                    color="warning" 
-                                    startIcon={<EditIcon />}
-                                    onClick={() => {
-                                        setEditData({ id: cat.id, name: cat.name });
-                                        setEditOpen(true);
-                                    }}
-                                    sx={{ textTransform: 'none', fontWeight: 600 }}
-                                >
-                                    Изменить
-                                </Button>
-                                <Button 
-                                    size="small" 
-                                    variant="text"
-                                    color="error" 
-                                    startIcon={<DeleteIcon />}
-                                    onClick={() => handleDeleteCategory(cat.id)}
-                                    sx={{ textTransform: 'none', fontWeight: 600 }}
-                                >
-                                    Удалить
-                                </Button>
-                            </CardActions>
-                        </Card>
-                    </Grid>
-                ))}
-            </Grid>
+                                <Divider />
+                                
+                                <CardActions sx={{ justifyContent: 'center', p: 1.5 }}>
+                                    <Button 
+                                        size="small" 
+                                        variant="text"
+                                        color="warning" 
+                                        startIcon={<EditIcon />}
+                                        onClick={() => {
+                                            setEditData({ id: cat.id, name: cat.name });
+                                            setEditOpen(true);
+                                        }}
+                                        sx={{ textTransform: 'none', fontWeight: 600 }}
+                                    >
+                                        Изменить
+                                    </Button>
+                                    <Button 
+                                        size="small" 
+                                        variant="text"
+                                        color="error" 
+                                        startIcon={<DeleteIcon />}
+                                        onClick={() => handleDeleteCategory(cat.id)}
+                                        sx={{ textTransform: 'none', fontWeight: 600 }}
+                                    >
+                                        Удалить
+                                    </Button>
+                                </CardActions>
+                            </Card>
+                        </Grid>
+                    ))}
+                </Grid>
+            )}
 
             {/* Модальное окно добавления */}
             <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm">

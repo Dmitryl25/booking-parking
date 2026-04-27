@@ -5,6 +5,8 @@ base.ts
 common.ts
 configuration.ts
 docs/AdminApi.md
+docs/AdminBookingsGetinfoPost200Response.md
+docs/AdminBookingsUnblockPostRequest.md
 docs/AdminGeneratePasswordPost200Response.md
 docs/AdminOfficesOfficeIdCategoriesIdPutRequest.md
 docs/AdminOfficesOfficeIdCategoriesPostRequest.md

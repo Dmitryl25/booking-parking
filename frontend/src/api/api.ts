@@ -23,6 +23,15 @@ import type { RequestArgs } from './base';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
+export interface AdminBookingsGetinfoPost200Response {
+    'startTime'?: string;
+    'endTime'?: string;
+}
+export interface AdminBookingsUnblockPostRequest {
+    'officeId': number;
+    'categoryId': number;
+    'number': string;
+}
 export interface AdminGeneratePasswordPost200Response {
     /**
      * Сгенерированный пароль
@@ -170,6 +179,83 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(bookingsPostRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Получение инфы о заблокированном месте.
+         * @summary blocked spot information
+         * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminBookingsGetinfoPost: async (adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'adminBookingsUnblockPostRequest' is not null or undefined
+            assertParamExists('adminBookingsGetinfoPost', 'adminBookingsUnblockPostRequest', adminBookingsUnblockPostRequest)
+            const localVarPath = `/admin/bookings/getinfo`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(adminBookingsUnblockPostRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Разблокировка места.
+         * @summary Spot unblocking
+         * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminBookingsUnblockPost: async (adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'adminBookingsUnblockPostRequest' is not null or undefined
+            assertParamExists('adminBookingsUnblockPost', 'adminBookingsUnblockPostRequest', adminBookingsUnblockPostRequest)
+            const localVarPath = `/admin/bookings/unblock`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(adminBookingsUnblockPostRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -781,6 +867,32 @@ export const AdminApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Получение инфы о заблокированном месте.
+         * @summary blocked spot information
+         * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminBookingsGetinfoPost(adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminBookingsGetinfoPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminBookingsGetinfoPost(adminBookingsUnblockPostRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminBookingsGetinfoPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Разблокировка места.
+         * @summary Spot unblocking
+         * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminBookingsUnblockPost(adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminBookingsUnblockPost(adminBookingsUnblockPostRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminBookingsUnblockPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Генерация случайного пароля на сервере
          * @summary Generate random password
          * @param {*} [options] Override http request option.
@@ -999,6 +1111,26 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.adminBookingsForcePost(bookingsPostRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Получение инфы о заблокированном месте.
+         * @summary blocked spot information
+         * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminBookingsGetinfoPost(adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<AdminBookingsGetinfoPost200Response> {
+            return localVarFp.adminBookingsGetinfoPost(adminBookingsUnblockPostRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Разблокировка места.
+         * @summary Spot unblocking
+         * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminBookingsUnblockPost(adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.adminBookingsUnblockPost(adminBookingsUnblockPostRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Генерация случайного пароля на сервере
          * @summary Generate random password
          * @param {*} [options] Override http request option.
@@ -1168,6 +1300,28 @@ export class AdminApi extends BaseAPI {
      */
     public adminBookingsForcePost(bookingsPostRequest: BookingsPostRequest, options?: RawAxiosRequestConfig) {
         return AdminApiFp(this.configuration).adminBookingsForcePost(bookingsPostRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Получение инфы о заблокированном месте.
+     * @summary blocked spot information
+     * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public adminBookingsGetinfoPost(adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminBookingsGetinfoPost(adminBookingsUnblockPostRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Разблокировка места.
+     * @summary Spot unblocking
+     * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public adminBookingsUnblockPost(adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminBookingsUnblockPost(adminBookingsUnblockPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
