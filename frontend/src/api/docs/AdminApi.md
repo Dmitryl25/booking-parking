@@ -80,7 +80,7 @@ void (empty response body)
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **adminBookingsGetinfoPost**
-> AdminBookingsGetinfoPost200Response adminBookingsGetinfoPost(adminBookingsUnblockPostRequest)
+> AdminBookingsGetinfoPost200Response adminBookingsGetinfoPost(adminParkingSpotsPostRequest)
 
 Получение инфы о заблокированном месте.
 
@@ -90,16 +90,16 @@ void (empty response body)
 import {
     AdminApi,
     Configuration,
-    AdminBookingsUnblockPostRequest
+    AdminParkingSpotsPostRequest
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new AdminApi(configuration);
 
-let adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest; //
+let adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest; //
 
 const { status, data } = await apiInstance.adminBookingsGetinfoPost(
-    adminBookingsUnblockPostRequest
+    adminParkingSpotsPostRequest
 );
 ```
 
@@ -107,7 +107,7 @@ const { status, data } = await apiInstance.adminBookingsGetinfoPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **adminBookingsUnblockPostRequest** | **AdminBookingsUnblockPostRequest**|  | |
+| **adminParkingSpotsPostRequest** | **AdminParkingSpotsPostRequest**|  | |
 
 
 ### Return type
@@ -127,7 +127,7 @@ const { status, data } = await apiInstance.adminBookingsGetinfoPost(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Blocked spot list |  -  |
+|**200** | Blocked spot information |  -  |
 |**400** | Invalid request |  -  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden (not admin) |  -  |
@@ -136,7 +136,7 @@ const { status, data } = await apiInstance.adminBookingsGetinfoPost(
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **adminBookingsUnblockPost**
-> adminBookingsUnblockPost(adminBookingsUnblockPostRequest)
+> adminBookingsUnblockPost(adminParkingSpotsPostRequest)
 
 Разблокировка места.
 
@@ -146,16 +146,16 @@ const { status, data } = await apiInstance.adminBookingsGetinfoPost(
 import {
     AdminApi,
     Configuration,
-    AdminBookingsUnblockPostRequest
+    AdminParkingSpotsPostRequest
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new AdminApi(configuration);
 
-let adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest; //
+let adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest; //
 
 const { status, data } = await apiInstance.adminBookingsUnblockPost(
-    adminBookingsUnblockPostRequest
+    adminParkingSpotsPostRequest
 );
 ```
 
@@ -163,7 +163,7 @@ const { status, data } = await apiInstance.adminBookingsUnblockPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **adminBookingsUnblockPostRequest** | **AdminBookingsUnblockPostRequest**|  | |
+| **adminParkingSpotsPostRequest** | **AdminParkingSpotsPostRequest**|  | |
 
 
 ### Return type

@@ -822,14 +822,14 @@ paths:
           application/json:
             schema:
               type: object
-              required: [officeId, categoryId, number]
+              required: [number, categoryId, officeId]
               properties:
-                officeId:
-                  type: integer
-                categoryId:
-                  type: integer
                 number:
                   type: string
+                categoryId:
+                  type: integer
+                officeId:
+                  type: integer
       responses:
         '200':
           description: Unblocked
@@ -854,17 +854,17 @@ paths:
           application/json:
             schema:
               type: object
-              required: [officeId, categoryId, number]
+              required: [number, categoryId, officeId]
               properties:
-                officeId:
-                  type: integer
-                categoryId:
-                  type: integer
                 number:
                   type: string
+                categoryId:
+                  type: integer
+                officeId:
+                  type: integer
       responses:
         '200':
-          description: Blocked spot list
+          description: Blocked spot information
           content:
             application/json:
               schema:

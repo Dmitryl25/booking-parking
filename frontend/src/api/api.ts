@@ -27,11 +27,6 @@ export interface AdminBookingsGetinfoPost200Response {
     'startTime'?: string;
     'endTime'?: string;
 }
-export interface AdminBookingsUnblockPostRequest {
-    'officeId': number;
-    'categoryId': number;
-    'number': string;
-}
 export interface AdminGeneratePasswordPost200Response {
     /**
      * Сгенерированный пароль
@@ -188,13 +183,13 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Получение инфы о заблокированном месте.
          * @summary blocked spot information
-         * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        adminBookingsGetinfoPost: async (adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'adminBookingsUnblockPostRequest' is not null or undefined
-            assertParamExists('adminBookingsGetinfoPost', 'adminBookingsUnblockPostRequest', adminBookingsUnblockPostRequest)
+        adminBookingsGetinfoPost: async (adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'adminParkingSpotsPostRequest' is not null or undefined
+            assertParamExists('adminBookingsGetinfoPost', 'adminParkingSpotsPostRequest', adminParkingSpotsPostRequest)
             const localVarPath = `/admin/bookings/getinfo`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -217,7 +212,7 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(adminBookingsUnblockPostRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(adminParkingSpotsPostRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -227,13 +222,13 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Разблокировка места.
          * @summary Spot unblocking
-         * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        adminBookingsUnblockPost: async (adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'adminBookingsUnblockPostRequest' is not null or undefined
-            assertParamExists('adminBookingsUnblockPost', 'adminBookingsUnblockPostRequest', adminBookingsUnblockPostRequest)
+        adminBookingsUnblockPost: async (adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'adminParkingSpotsPostRequest' is not null or undefined
+            assertParamExists('adminBookingsUnblockPost', 'adminParkingSpotsPostRequest', adminParkingSpotsPostRequest)
             const localVarPath = `/admin/bookings/unblock`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -255,7 +250,7 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(adminBookingsUnblockPostRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(adminParkingSpotsPostRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -869,12 +864,12 @@ export const AdminApiFp = function(configuration?: Configuration) {
         /**
          * Получение инфы о заблокированном месте.
          * @summary blocked spot information
-         * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async adminBookingsGetinfoPost(adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminBookingsGetinfoPost200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.adminBookingsGetinfoPost(adminBookingsUnblockPostRequest, options);
+        async adminBookingsGetinfoPost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminBookingsGetinfoPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminBookingsGetinfoPost(adminParkingSpotsPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AdminApi.adminBookingsGetinfoPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -882,12 +877,12 @@ export const AdminApiFp = function(configuration?: Configuration) {
         /**
          * Разблокировка места.
          * @summary Spot unblocking
-         * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async adminBookingsUnblockPost(adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.adminBookingsUnblockPost(adminBookingsUnblockPostRequest, options);
+        async adminBookingsUnblockPost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminBookingsUnblockPost(adminParkingSpotsPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AdminApi.adminBookingsUnblockPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -1113,22 +1108,22 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
         /**
          * Получение инфы о заблокированном месте.
          * @summary blocked spot information
-         * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        adminBookingsGetinfoPost(adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<AdminBookingsGetinfoPost200Response> {
-            return localVarFp.adminBookingsGetinfoPost(adminBookingsUnblockPostRequest, options).then((request) => request(axios, basePath));
+        adminBookingsGetinfoPost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<AdminBookingsGetinfoPost200Response> {
+            return localVarFp.adminBookingsGetinfoPost(adminParkingSpotsPostRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Разблокировка места.
          * @summary Spot unblocking
-         * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        adminBookingsUnblockPost(adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.adminBookingsUnblockPost(adminBookingsUnblockPostRequest, options).then((request) => request(axios, basePath));
+        adminBookingsUnblockPost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.adminBookingsUnblockPost(adminParkingSpotsPostRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Генерация случайного пароля на сервере
@@ -1305,23 +1300,23 @@ export class AdminApi extends BaseAPI {
     /**
      * Получение инфы о заблокированном месте.
      * @summary blocked spot information
-     * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+     * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public adminBookingsGetinfoPost(adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options?: RawAxiosRequestConfig) {
-        return AdminApiFp(this.configuration).adminBookingsGetinfoPost(adminBookingsUnblockPostRequest, options).then((request) => request(this.axios, this.basePath));
+    public adminBookingsGetinfoPost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminBookingsGetinfoPost(adminParkingSpotsPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * Разблокировка места.
      * @summary Spot unblocking
-     * @param {AdminBookingsUnblockPostRequest} adminBookingsUnblockPostRequest 
+     * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public adminBookingsUnblockPost(adminBookingsUnblockPostRequest: AdminBookingsUnblockPostRequest, options?: RawAxiosRequestConfig) {
-        return AdminApiFp(this.configuration).adminBookingsUnblockPost(adminBookingsUnblockPostRequest, options).then((request) => request(this.axios, this.basePath));
+    public adminBookingsUnblockPost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminBookingsUnblockPost(adminParkingSpotsPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -169,9 +169,9 @@ const AdminSpots = () => {
         
         try {
             const response = await adminApi.adminBookingsGetinfoPost({
-                officeId: parseInt(officeId),
+                number: spot.number,
                 categoryId: category?.id,
-                number: spot.number
+                officeId: parseInt(officeId)
             });
             setBlockingInfo(response.data);
         } catch {
@@ -190,9 +190,9 @@ const AdminSpots = () => {
 
         try {
             await adminApi.adminBookingsUnblockPost({
-                officeId: parseInt(officeId),
+                number: selectedSpot.number,
                 categoryId: category?.id,
-                number: selectedSpot.number
+                officeId: parseInt(officeId)
             });
             setInfoOpen(false);
             fetchSpots();
