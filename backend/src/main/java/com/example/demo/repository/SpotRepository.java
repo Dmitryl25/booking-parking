@@ -121,7 +121,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
 
 
     @Transactional(readOnly = true)
-    @Query("SELECT s.start, s.finish FROM Spot s WHERE s.spot_number = :spotNumber AND s.office.id = :officeId AND s.category.id = :categoryId AND s.user.id = :userId")
+    @Query("SELECT new com.example.demo.dto.SpotInfo(s.start, s.finish) FROM Spot s WHERE s.spot_number = :spotNumber AND s.office.id = :officeId AND s.category.id = :categoryId AND s.user.id = :userId")
     List<SpotInfo> getSpotInfo(@Param("spotNumber") String  spotNumber, @Param("categoryId") Long categoryId, @Param("officeId") Long officeId, @Param("userId") Long userId);
 
     @Modifying

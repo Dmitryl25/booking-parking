@@ -8,4 +8,9 @@ import java.time.ZonedDateTime;
 public class SpotInfo {
     ZonedDateTime startTime;
     ZonedDateTime endTime;
+
+    public SpotInfo(ZonedDateTime startTime, ZonedDateTime endTime) {
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
 }
