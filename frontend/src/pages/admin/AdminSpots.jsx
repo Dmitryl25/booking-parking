@@ -434,8 +434,7 @@ const AdminSpots = () => {
                                 </Typography>
                                 
                                 <Typography variant="body1" color="text.secondary">
-                                    с {new Date(blockingInfo.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 
-                                    до {new Date(blockingInfo.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    {new Date(blockingInfo.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}-{new Date(blockingInfo.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </Typography>
                             </Box>
                         </Stack>
