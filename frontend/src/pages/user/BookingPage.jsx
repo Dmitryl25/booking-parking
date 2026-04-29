@@ -15,11 +15,7 @@ const BookingPage = () => {
     const [spots, setSpots] = useState([]);
 
     // Текущая дата пользователя
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const localToday = `${year}-${month}-${day}`;
+    const localToday = new Date().toISOString().split('T')[0];
 
     // Данные формы
     const [filters, setFilters] = useState({
@@ -33,19 +29,20 @@ const BookingPage = () => {
     // Вспомогательные состояния
     const [selectedSpot, setSelectedSpot] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchDone, setSearchDone] = useState(false);
 
     // Загрузка офисов
     useEffect(() => {
-        setLoading(true);
-
         const fetchOffices = async () => {
             try {
                 const response = await commonApi.officesGet();
                 setOffices(response.data);
             } catch {
                 setError("Не удалось загрузить список офисов");
+            } finally {
+                setInitialLoading(false);
             }
         }
 
@@ -54,27 +51,39 @@ const BookingPage = () => {
 
     // Загрузка категорий
     useEffect(() => {
-        if (filters.officeId) {
-            const fetchCategories = async () => {
-                try {
-                    const response = await commonApi.officesOfficeIdCategoriesGet(filters.officeId);
-                    setCategories(response.data);
-                    setFilters(prev => ({ ...prev, categoryId: '' })); // Сброс категории
-                } catch {
-                    setError("Не удалось загрузить список категорий");
-                }
-            }
-
-            fetchCategories();
-            setLoading(false);
+        if (!filters.officeId) {
+            setCategories([]);
+            return;
         }
+
+        const fetchCategories = async () => {
+            setCategories([]);
+            setError(null);
+            try {
+                const response = await commonApi.officesOfficeIdCategoriesGet(filters.officeId);
+                const data = response.data || [];
+                setCategories(data);
+
+                if (data.length === 0) {
+                    setFilters(prev => ({ ...prev, categoryId: 'none' }));
+                } else {
+                    setFilters(prev => ({ ...prev, categoryId: '' }));
+                }
+            } catch {
+                setError("Не удалось загрузить список категорий");
+            }
+        }
+
+        fetchCategories();
     }, [filters.officeId]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFilters(prev => ({ ...prev, [name]: value }));
+        if (name === 'officeId') setFilters(prev => ({ ...prev, categoryId: '' }));
         setSearchDone(false); // Сброс результата при изменении фильтров
         setSelectedSpot(null);
+        setError(null);
     }
 
     // Поиск парковочных мест
@@ -85,10 +94,7 @@ const BookingPage = () => {
         const start = new Date(`${filters.date}T${filters.startTime}:00`);
         const end = new Date(`${filters.date}T${filters.endTime}:00`);
 
-        const startISO = start.toISOString();
-        const endISO = end.toISOString();
-
-        if (new Date(startISO) >= new Date(endISO)) {
+        if (new Date(start) >= new Date(end)) {
             setError("Время конца не может быть раньше или равно времени начала");
             setLoading(false);
             return
@@ -98,8 +104,8 @@ const BookingPage = () => {
             const response = await userApi.bookingsSearchPost({
                 officeId: filters.officeId,
                 categoryId: filters.categoryId,
-                startTime: startISO,
-                endTime: endISO
+                startTime: start.toISOString(),
+                endTime: end.toISOString()
             });
             setSpots(response.data);
             setSearchDone(true);
@@ -115,16 +121,13 @@ const BookingPage = () => {
         const start = new Date(`${filters.date}T${filters.startTime}:00`);
         const end = new Date(`${filters.date}T${filters.endTime}:00`);
 
-        const startISO = start.toISOString();
-        const endISO = end.toISOString();
-
         try {
             await userApi.bookingsPost({
                 officeId: filters.officeId,
                 categoryId: filters.categoryId,
                 number: selectedSpot,
-                startTime: startISO,
-                endTime: endISO
+                startTime: start.toISOString(),
+                endTime: end.toISOString()
             })
             navigate('/user/bookings');
             alert("Место успешно забронировано!")
@@ -139,6 +142,8 @@ const BookingPage = () => {
     const maxDateStr = maxDate.toISOString().split('T')[0];
     const minDateStr = new Date().toISOString().split('T')[0];
 
+    const isFormValid = filters.officeId && filters.categoryId && filters.categoryId !== 'none';
+
     return (
         <Container maxWidth="md" sx={{ mt: 4, mb: 6 }}>
             <Button 
@@ -148,69 +153,82 @@ const BookingPage = () => {
             >
                 Назад
             </Button>
-            <Typography variant="h4" fontWeight="700" mb={4}>Забронировать место</Typography>
+            <Typography variant="h5" fontWeight="700" mb={4}>Забронировать место</Typography>
 
-            <Card variant="outlined" sx={{ p: 3, borderRadius: 3, mb: 4 }}>
-                <Grid container spacing={3}>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <TextField
-                            select fullWidth label="Офис" id="officeId" name="officeId"
-                            value={filters.officeId} onChange={handleChange}
-                        >
-                            {offices.map(o => <MenuItem key={o.id} value={o.id}>{o.address}</MenuItem>)}
-                        </TextField>
-                    </Grid>
+            {initialLoading ? <CircularProgress /> : (
+                <Card variant="outlined" sx={{ p: 3, borderRadius: 3, mb: 4 }}>
+                    <Grid container spacing={3}>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <TextField
+                                select fullWidth label="Офис" id="officeId" name="officeId"
+                                value={filters.officeId} onChange={handleChange}
+                            >
+                                {offices.map(o => <MenuItem key={o.id} value={o.id}>{o.address}</MenuItem>)}
+                            </TextField>
+                        </Grid>
 
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <TextField
-                            select fullWidth label="Категория" id="categoryId" name="categoryId"
-                            value={filters.categoryId} onChange={handleChange}
-                        >
-                            {categories.map(c => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
-                        </TextField>
-                    </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <TextField
+                                select fullWidth label="Категория" id="categoryId" name="categoryId"
+                                value={filters.categoryId} onChange={handleChange}
+                                disabled={!filters.officeId || filters.categoryId === 'none'}
+                            >
+                                {categories.length > 0 && categories.map((c) => (
+                                    <MenuItem key={c.id} value={c.id}>
+                                        {c.name}
+                                    </MenuItem>
+                                ))}
 
-                    <Grid size={{ xs: 12, md: 4 }}>
-                        <TextField
-                            fullWidth type="date" label="Дата" id="date" name="date"
-                            value={filters.date} onChange={handleChange}
-                            InputLabelProps={{ shrink: true }}
-                            inputProps={{ min: minDateStr, max: maxDateStr }}
-                        />
-                    </Grid>
+                                {filters.categoryId === 'none' && (
+                                    <MenuItem value="none">
+                                        Нет доступных категорий
+                                    </MenuItem>
+                                )}
+                            </TextField>
+                        </Grid>
 
-                    <Grid size={{ xs: 6, md: 4 }}>
-                        <TextField
-                            fullWidth type="time" label="Начало" id="startTime" name="startTime"
-                            value={filters.startTime} onChange={handleChange}
-                            InputLabelProps={{ shrink: true }}
-                        />
-                    </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                            <TextField
+                                fullWidth type="date" label="Дата" id="date" name="date"
+                                value={filters.date} onChange={handleChange}
+                                InputLabelProps={{ shrink: true }}
+                                inputProps={{ min: minDateStr, max: maxDateStr }}
+                            />
+                        </Grid>
 
-                    <Grid size={{ xs: 6, md: 4 }}>
-                        <TextField
-                            fullWidth type="time" label="Конец" id="endTime" name="endTime"
-                            value={filters.endTime} onChange={handleChange}
-                            InputLabelProps={{ shrink: true }}
-                        />
-                    </Grid>
+                        <Grid size={{ xs: 6, md: 4 }}>
+                            <TextField
+                                fullWidth type="time" label="Начало" id="startTime" name="startTime"
+                                value={filters.startTime} onChange={handleChange}
+                                InputLabelProps={{ shrink: true }}
+                            />
+                        </Grid>
 
-                    <Grid size={{ xs: 12 }}>
-                        <Button
-                            fullWidth variant="contained" size="large"
-                            onClick={handleSearch} disabled={loading || !filters.categoryId}
-                        >
-                            {loading ? <CircularProgress size={24} /> : "Найти"}
-                        </Button>
+                        <Grid size={{ xs: 6, md: 4 }}>
+                            <TextField
+                                fullWidth type="time" label="Конец" id="endTime" name="endTime"
+                                value={filters.endTime} onChange={handleChange}
+                                InputLabelProps={{ shrink: true }}
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 12 }}>
+                            <Button
+                                fullWidth variant="contained" size="large"
+                                onClick={handleSearch} disabled={loading || !isFormValid}
+                            >
+                                {loading ? <CircularProgress size={24} /> : "Найти свободные места"}
+                            </Button>
+                        </Grid>
                     </Grid>
-                </Grid>
-            </Card>
+                </Card>
+            )}
 
             {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
             {searchDone && (
                 <Box>
-                    <Divider sx={{ mb: 4 }}><Typography color="text.secondary">ДОСТУПНЫЕ МЕСТА</Typography></Divider>
+                    <Divider sx={{ mb: 4 }}><Typography color="text.secondary">СВОБОДНЫЕ МЕСТА</Typography></Divider>
 
                     {spots.length > 0 ? (
                         <>
@@ -227,7 +245,7 @@ const BookingPage = () => {
                                         >
                                             <CardActionArea onClick={() => setSelectedSpot(spot.number)} sx={{ p: 2, textAlign: 'center' }}>
                                                 <DirectionsCarIcon color={selectedSpot === spot.number ? "primary" : "action"} />
-                                                <Typography fontWeight="700">№{spot.number}</Typography>
+                                                <Typography fontWeight="700">{spot.number}</Typography>
                                             </CardActionArea>
                                         </Card>
                                     </Grid>
@@ -259,7 +277,7 @@ const BookingPage = () => {
                                         sx={{ width: '100%', maxWidth: 'md' }}
                                     >
                                         <Typography variant="body1" sx={{ fontWeight: 600, flexGrow: 1 }}>
-                                            Выбрано: место №{spots.find(s => s.number === selectedSpot)?.number}
+                                            Выбрано: место {spots.find(s => s.number === selectedSpot)?.number}
                                             <Typography component="span" variant="caption" display="block" color="text.secondary">
                                                 {new Date(filters.date).toLocaleDateString()} | {filters.startTime} - {filters.endTime}
                                             </Typography>

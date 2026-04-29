@@ -114,7 +114,7 @@ const UserBookings = () => {
                                         <Box display="flex" alignItems="center" gap={1}>
                                             <DirectionsCarIcon fontSize="inherit" color="action" />
                                             <Typography variant="body2" fontWeight="700">
-                                            № {booking.spotNumber}
+                                            {booking.spotNumber}
                                             </Typography>
                                         </Box>
                                     </Grid>
