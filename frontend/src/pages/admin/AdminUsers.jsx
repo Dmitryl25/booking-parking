@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Button, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack, MenuItem, InputAdornment, Tooltip, Divider } from '@mui/material';
+import { Container, Typography, Button, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack, MenuItem, InputAdornment, Tooltip, Divider, CircularProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -8,6 +8,7 @@ import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { adminApi } from "../../api/index";
+import ConfirmModal from '../../components/ConfirmModal';
 
 const AdminUsers = () => {
     const [users, setUsers] = useState([]);
@@ -18,6 +19,13 @@ const AdminUsers = () => {
     const [openAdd, setOpenAdd] = useState(false);
     const [openEdit, setOpenEdit] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [modal, setModal] = useState({
+        open: false,
+        title: '',
+        message: '',
+        type: 'success',
+        onConfirm: null
+    });
 
     // Данные форм
     const [formData, setFormData] = useState({
@@ -28,12 +36,17 @@ const AdminUsers = () => {
         role: 'ROLE_USER',
     });
 
+    const showModal = (title, message, type = 'success', onConfirm = null) => {
+        setModal({ open: true, title, message, type, onConfirm });
+    };
+
     // Получение списка пользователей
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const res = await adminApi.adminUsersGet();
-            setUsers(res.data || []);
+            const response = await adminApi.adminUsersGet();
+            const sorted = (response.data || []).sort((a, b) => a.id - b.id);
+            setUsers(sorted);
         } catch (err) {
             console.error("Ошибка загрузки пользователей", err);
         } finally {
@@ -59,7 +72,7 @@ const AdminUsers = () => {
         const plateRegex = /^[А-Яа-яA-Za-z]\d{3}[А-Яа-яA-Za-z]{2}\d{3}$/;
         
         if (!plateRegex.test(formData.licensePlate)) {
-            alert("Номер машины должен быть в формате: А111АА199");
+            showModal('Ошибка валидации', 'Номер машины должен быть в формате: А111АА199', 'error');
             return;
         }
 
@@ -68,6 +81,7 @@ const AdminUsers = () => {
             setOpenAdd(false);
             setFormData({ email: '', name: '', licensePlate: '', password: '', role: 'ROLE_USER' });
             fetchUsers();
+            showModal('Готово!', 'Сотрудник успешно добавлен в систему', 'success');
         } catch {
             alert("Ошибка при создании. Проверьте почту или формат данных.");
         }
@@ -82,6 +96,7 @@ const AdminUsers = () => {
             });
             setOpenEdit(false);
             fetchUsers();
+            showModal('Обновлено', 'Данные сотрудника успешно изменены', 'success');
         } catch {
             alert("Ошибка обновления");
         }
@@ -98,15 +113,24 @@ const AdminUsers = () => {
         }
     };
 
+    // Подтверждение удаления пользователя
+    const handleDeleteClick = (user) => {
+        showModal(
+            'Удаление', 
+            `Вы уверены, что хотите удалить сотрудника ${user.name}? Это действие необратимо.`, 
+            'confirm',
+            () => confirmDelete(user.id)
+        );
+    };
+
     // Удаление пользователя
-    const handleDeleteUser = async (id) => {
-        if (window.confirm("Удалить пользователя навсегда?")) {
-            try {
-                await adminApi.adminUsersIdDelete(id);
-                fetchUsers();
-            } catch {
-                alert("Ошибка удаления");
-            }
+    const confirmDelete = async (id) => {
+        try {
+            await adminApi.adminUsersIdDelete(id);
+            fetchUsers();
+            showModal('Удалено', 'Сотрудник полностью удален из системы', 'success');
+        } catch {
+            alert("Ошибка удаления");
         }
     };
 
@@ -126,50 +150,56 @@ const AdminUsers = () => {
                 </Button>
             </Box>
 
-            <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-                <Table>
-                    <TableHead sx={{ bgcolor: '#f5f5f5' }}>
-                        <TableRow>
-                            <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>ФИО</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Гос. номер</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Роль</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }} align="right">Действия</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {users.map((user) => (
-                            <TableRow key={user.id} hover>
-                                <TableCell>{user.id}</TableCell>
-                                <TableCell fontWeight="600">{user.name}</TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>{user.licensePlate}</TableCell>
-                                <TableCell>{user.role}</TableCell>
-                                <TableCell align="right">
-                                    <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                        <IconButton color="primary" onClick={() => {
-                                            setSelectedUser(user);
-                                            setFormData({ name: user.name, licensePlate: user.licensePlate });
-                                            setOpenEdit(true);
-                                        }}>
-                                            <EditIcon fontSize="small" />
-                                        </IconButton>
-                                        <IconButton color="error" onClick={() => handleDeleteUser(user.id)}>
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                    </Stack>
-                                </TableCell>
+            {loading ? (
+                <Box display="flex" justifyContent="center" alignItems="center" minHeight="40vh">
+                    <CircularProgress size={40} thickness={4} />
+                </Box>
+            ) : (
+                <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+                    <Table>
+                        <TableHead sx={{ bgcolor: '#f5f5f5' }}>
+                            <TableRow>
+                                <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>ФИО</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Гос. номер</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Роль</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }} align="right">Действия</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                            {users.map((user) => (
+                                <TableRow key={user.id} hover>
+                                    <TableCell>{user.id}</TableCell>
+                                    <TableCell fontWeight="600">{user.name}</TableCell>
+                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell>{user.licensePlate}</TableCell>
+                                    <TableCell>{user.role}</TableCell>
+                                    <TableCell align="right">
+                                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                            <IconButton color="primary" onClick={() => {
+                                                setSelectedUser(user);
+                                                setFormData({ name: user.name, licensePlate: user.licensePlate });
+                                                setOpenEdit(true);
+                                            }}>
+                                                <EditIcon fontSize="small" />
+                                            </IconButton>
+                                            <IconButton color="error" onClick={() => handleDeleteClick(user)}>
+                                                <DeleteIcon fontSize="small" />
+                                            </IconButton>
+                                        </Stack>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            )}
 
-            {/* Модалка добавления */}
+            {/* Модальное окно добавления */}
             <Dialog open={openAdd} onClose={() => setOpenAdd(false)} fullWidth maxWidth="xs">
-                <DialogTitle sx={{ fontWeight: 700 }}>Новый сотрудник</DialogTitle>
-                <DialogContent dividers>
+                <DialogTitle sx={{ fontWeight: 800 }}>Новый сотрудник</DialogTitle>
+                <DialogContent>
                     <Stack spacing={2} sx={{ mt: 1 }}>
                         <TextField 
                             label="ФИО"
@@ -232,14 +262,14 @@ const AdminUsers = () => {
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setOpenAdd(false)}>Отмена</Button>
-                    <Button variant="contained" onClick={handleCreateUser}>Создать</Button>
+                    <Button variant="contained" onClick={handleCreateUser} disabled={!formData.name || !formData.email || !formData.licensePlate || !formData.password}>Создать</Button>
                 </DialogActions>
             </Dialog>
 
-            {/* Модалка редактирования */}
+            {/* Модальное окно редактирования */}
             <Dialog open={openEdit} onClose={() => setOpenEdit(false)} fullWidth maxWidth="xs">
-                <DialogTitle sx={{ fontWeight: 700 }}>Редактирование профиля</DialogTitle>
-                <DialogContent dividers>
+                <DialogTitle sx={{ fontWeight: 800 }}>Редактирование профиля</DialogTitle>
+                <DialogContent>
                     <Stack spacing={2} sx={{ mt: 1 }}>
                         <TextField 
                             label="ФИО" 
@@ -295,6 +325,17 @@ const AdminUsers = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Модальное окно подтверждения/успеха */}
+            <ConfirmModal 
+                open={modal.open}
+                onClose={() => setModal({ ...modal, open: false })}
+                onConfirm={modal.onConfirm}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+                confirmText={modal.type === 'confirm' ? "Удалить" : "Понятно"}
+            />
         </Container>
     );
 };

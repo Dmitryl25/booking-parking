@@ -51,53 +51,53 @@ const Login = () => {
 
     return (
         <Container maxWidth='xs'>
-            <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                <Paper elevation={3} sx={{ padding: 4, width: '100%' }}>
-                    <Typography component='h1' variant="h5" align="center" gutterBottom>
+            <Box sx={{ marginTop: 12, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                <Paper elevation={3} sx={{ padding: 4, width: '100%', borderRadius: 4, border: '1px solid #eee' }}>
+                    <Typography component='h1' variant="h5" align="center" gutterBottom fontWeight="800">
                         Авторизация
                     </Typography>
 
-                    {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                    {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
 
                     <form onSubmit={handleSubmit}>
                         <TextField
-                        margin="normal"
-                        fullWidth
-                        required 
-                        label='Email'
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        error={email !== '' && !isEmailValid(email)}
-                        helperText={email !== '' && !isEmailValid(email) ? "Неверный формат почты" : ""}
+                            margin="normal"
+                            fullWidth
+                            required 
+                            label='Email'
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            error={email !== '' && !isEmailValid(email)}
+                            helperText={email !== '' && !isEmailValid(email) ? "Неверный формат почты" : ""}
                         />
 
                         <TextField
-                        margin="normal"
-                        fullWidth
-                        required
-                        label='Пароль'
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <IconButton 
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                    >
-                                        {showPassword ? <Visibility /> : <VisibilityOff />}
-                                    </IconButton>
-                                </InputAdornment>
-                            )
+                            margin="normal"
+                            fullWidth
+                            required
+                            label='Пароль'
+                            type={showPassword ? 'text' : 'password'}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton 
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? <Visibility /> : <VisibilityOff />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
                         }}
                         />
 
                         <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        sx={{ mt:3, mb: 2 }}
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            sx={{ mt:3, mb: 2 }}
                         >
                             Войти
                         </Button>

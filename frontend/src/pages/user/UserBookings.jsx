@@ -1,16 +1,26 @@
 import { useState, useEffect} from "react";
-import { Container, Typography, Button, Card, Grid, Box, Divider, Stack, CircularProgress, Alert } from '@mui/material';
+import { Container, Typography, Button, Card, Grid, Box, Divider, Stack, CircularProgress, Alert, Paper } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import CloseIcon from '@mui/icons-material/Close';
 import { userApi } from "../../api/index";
 import { Link } from 'react-router-dom';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const UserBookings = () => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Состояние для модального окна подтверждения
+    const [modal, setModal] = useState({
+        open: false,
+        title: '',
+        message: '',
+        type: 'success',
+        bookingId: null
+    });
 
     // Получение списка бронирований пользователя
     useEffect(() => {
@@ -18,9 +28,9 @@ const UserBookings = () => {
             try {
                 setLoading(true);
                 const response = await userApi.bookingsMyGet();
-                const sorted = response.data.sort((a, b) => {
+                const sorted = (response.data || []).sort((a, b) =>
                     new Date(a.startTime) - new Date(b.startTime)
-                })
+                )
                 setBookings(sorted);
             } catch {
                 console.error("Не удалось загрузить список бронирований")
@@ -39,16 +49,36 @@ const UserBookings = () => {
         return `${s} — ${e}`;
     };
 
-    const handleCancel = async (id) => {
-        if (window.confirm("Вы уверены, что хотите отменить бронирование?")) {
-            try {
-                await userApi.bookingsIdDelete(id);
-                setBookings(bookings.filter(b => b.id !== id));
-            } catch {
-                setError("Не удалось отменить бронирование");
-            }
+    // Открытие модального окна подтверждения при отмене брони
+    const handleOpenCancelModal = (booking) => {
+        setModal({
+            open: true,
+            title: 'Отмена бронирования',
+            message: `Вы действительно хотите отменить бронирование места ${booking.spotNumber} в офисе ${booking.office}?`,
+            type: 'confirm',
+            bookingId: booking.id
+        });
+    }
+
+    // Отмена бронирования после подтверждения
+    const confirmCancel = async () => {
+        try {
+            await userApi.bookingsIdDelete(modal.bookingId);
+            setBookings(bookings.filter(b => b.id !== modal.bookingId));
+
+            setModal({
+                open: true,
+                title: 'Успешно',
+                message: 'Бронирование было отменено.',
+                type: 'success',
+                bookingId: null
+            });
+        } catch {
+            setError("Не удалось отменить бронирование");
         }
     }
+
+    const closeModal = () => setModal(prev => ({ ...prev, open: false }));
 
     if (loading) {
         return (
@@ -78,10 +108,10 @@ const UserBookings = () => {
                             key={booking.id} 
                             variant="outlined" 
                             sx={{ 
-                            borderRadius: 3, 
-                            borderColor: 'divider',
-                            transition: '0.3s',
-                            '&:hover': { boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }
+                                borderRadius: 3, 
+                                borderColor: 'divider',
+                                transition: '0.3s',
+                                '&:hover': { boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }
                             }}
                         >
                             <Box p={3}>
@@ -100,7 +130,7 @@ const UserBookings = () => {
 
                                 {/* Средняя часть: Время и Место */}
                                 <Grid container spacing={2} mb={2}>
-                                    <Grid item xs={7}>
+                                    <Grid size={{ xs: 7 }}>
                                         <Typography variant="caption" color="text.secondary" display="block">ДАТА И ВРЕМЯ</Typography>
                                         <Box display="flex" alignItems="center" gap={1}>
                                             <AccessTimeIcon fontSize="inherit" color="action" />
@@ -109,11 +139,11 @@ const UserBookings = () => {
                                             </Typography>
                                         </Box>
                                     </Grid>
-                                    <Grid item xs={5}>
+                                    <Grid size={{ xs: 5 }}>
                                         <Typography variant="caption" color="text.secondary" display="block">ПАРКОВОЧНОЕ МЕСТО</Typography>
                                         <Box display="flex" alignItems="center" gap={1}>
                                             <DirectionsCarIcon fontSize="inherit" color="action" />
-                                            <Typography variant="body2" fontWeight="700">
+                                            <Typography variant="body2" fontWeight="700" color="primary.main">
                                             {booking.spotNumber}
                                             </Typography>
                                         </Box>
@@ -121,43 +151,54 @@ const UserBookings = () => {
                                 </Grid>
 
                                 {/* Нижняя часть: Кнопка */}
-                                <>
-                                    <Divider sx={{ my: 1.5, borderStyle: 'dashed' }} />
-                                    <Box display="flex" justifyContent="flex-end">
-                                        <Button 
-                                            size="small" 
-                                            color="error" 
-                                            startIcon={<CloseIcon />}
-                                            onClick={() => handleCancel(booking.id)}
-                                            sx={{ fontWeight: 600, textTransform: 'none' }}
-                                        >
-                                        Отменить запись
-                                        </Button>
-                                    </Box>
-                                </>
+                                <Divider sx={{ my: 1.5, borderStyle: 'dashed' }} />
+                                <Box display="flex" justifyContent="flex-end">
+                                    <Button 
+                                        size="small" 
+                                        color="error" 
+                                        startIcon={<CloseIcon />}
+                                        onClick={() => handleOpenCancelModal(booking)}
+                                        sx={{ fontWeight: 600, textTransform: 'none' }}
+                                    >
+                                    Отменить бронь
+                                    </Button>
+                                </Box>
                             </Box>
                         </Card>
                     ))}
                 </Stack>
             ) : (
-                <Box 
+                <Paper 
                     sx={{ 
+                        p: 5, 
                         textAlign: 'center', 
-                        py: 10, 
-                        px: 2, 
-                        bgcolor: '#f8f9fa', 
                         borderRadius: 4, 
-                        border: '1px dashed #e0e0e0' 
+                        bgcolor: '#f8f9fa', 
+                        border: '1px dashed #e0e0e0',
+                        mt: 4,
+                        boxShadow: 'none'
                     }}
                 >
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                    <Typography variant="h6" fontWeight="600" color="text.secondary" gutterBottom>
                         Активных бронирований пока нет
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" mb={3}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400, mx: 'auto' }}>
                         Здесь появится список ваших будущих парковочных мест.
                     </Typography>
-                </Box>
+                </Paper>
             )}
+
+            {/* Модальное окно */}
+            <ConfirmModal 
+                open={modal.open}
+                onClose={closeModal}
+                onConfirm={modal.type === 'confirm' ? confirmCancel : null}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+                confirmText="Да, отменить"
+                cancelText="Назад"
+            />
         </Container>
     )
 }

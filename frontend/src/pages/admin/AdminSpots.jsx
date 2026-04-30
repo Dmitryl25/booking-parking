@@ -9,6 +9,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import { adminApi, commonApi } from "../../api/index";
+import ConfirmModal from "../../components/ConfirmModal";
 
 const AdminSpots = () => {
     const { officeId } = useParams();
@@ -39,6 +40,19 @@ const AdminSpots = () => {
     const [blockingInfo, setBlockingInfo] = useState(null);
     const [infoLoading, setInfoLoading] = useState(false);
 
+    // Состояние для модального окна подтверждения/успеха
+    const [modal, setModal] = useState({
+        open: false,
+        title: '',
+        message: '',
+        type: 'success',
+        onConfirm: null
+    });
+
+    const showModal = (title, message, type = 'success', onConfirm = null) => {
+        setModal({ open: true, title, message, type, onConfirm });
+    };
+
     // Получение парковочных мест
     const fetchSpots = useCallback(async () => {
         setLoading(true);
@@ -52,14 +66,20 @@ const AdminSpots = () => {
 
             // Получение всех категорий офиса
             const catRes = await commonApi.officesOfficeIdCategoriesGet(parseInt(officeId));
-            setAllCategories(catRes.data || []);
+            const sortedCats = (catRes.data || []).sort((a, b) => a.id - b.id);
+            setAllCategories(sortedCats);
 
             // Получение всех мест офиса
             const response = await adminApi.adminOfficesOfficeIdParkingSpotsGet(parseInt(officeId));
             const allSpots = response.data || [];
 
+            // Сортировка мест
+            const sortedSpots = allSpots.sort((a, b) => 
+                a.number.localeCompare(b.number, undefined, { numeric: true, sensitivity: 'base' })
+            );
+
             // Группировка мест по категориям
-            const groups = allSpots.reduce((acc, spot) => {
+            const groups = sortedSpots.reduce((acc, spot) => {
                 const catName = spot.category;
                 if (!acc[catName]) acc[catName] = [];
                 acc[catName].push(spot);
@@ -78,10 +98,6 @@ const AdminSpots = () => {
 
     // Добавление парковочного места
     const handleAddSpot = async () => {
-        if (!newData.number || !newData.categoryId) {
-            alert("Заполните все поля");
-            return;
-        }
         try {
             await adminApi.adminParkingSpotsPost({
                 number: newData.number,
@@ -91,32 +107,35 @@ const AdminSpots = () => {
             setAddOpen(false);
             setNewData({ number: '', categoryId: '' });
             fetchSpots();
+            showModal('Успешно', `Место ${newData.number} добавлено`, 'success');
         } catch {
             alert("Ошибка при создании места. Возможно, такой номер уже есть.");
         }
     };
 
     // Удаление парковочного места
-    const handleDeleteSpot = async (spot) => {
+    const handleDeleteClick = (spot) => {
+        showModal(
+            'Удаление места',
+            `Вы действительно хотите удалить место ${spot.number}?`,
+            'confirm',
+            () => confirmDelete(spot)
+        );
+    };
+
+    const confirmDelete = async (spot) => {
         const category = allCategories.find(c => c.name === spot.category);
-        const categoryId = category ? category.id : null;
 
-        if (!categoryId) {
-            alert("Не удалось определить ID категории");
-            return;
-        }
-
-        if (window.confirm(`Вы действительно хотите удалить место ${spot.number}?`)) {
-            try {
-                await adminApi.adminParkingSpotsDeletePost({
-                    number: spot.number,
-                    categoryId: parseInt(categoryId),
-                    officeId: parseInt(officeId)
-                });
-                fetchSpots();
-            } catch {
-                alert("Ошибка при удалении места");
-            }
+        try {
+            await adminApi.adminParkingSpotsDeletePost({
+                number: spot.number,
+                categoryId: parseInt(category.id),
+                officeId: parseInt(officeId)
+            });
+            fetchSpots();
+            showModal('Удалено', 'Парковочное место удалено', 'success');
+        } catch {
+            alert("Ошибка при удалении места");
         }
     };
 
@@ -125,35 +144,24 @@ const AdminSpots = () => {
         const start = new Date(`${blockData.date}T${blockData.startTime}:00`);
         const end = new Date(`${blockData.date}T${blockData.endTime}:00`);
 
-        const startISO = start.toISOString();
-        const endISO = end.toISOString();
-
         if (start >= end) {
-            alert("Время конца не может быть раньше или равно времени начала");
+            showModal('Ошибка времени', 'Время окончания должно быть позже времени начала', 'error');
             return;
         }
 
         const category = allCategories.find(c => c.name === selectedSpot.category);
-        const categoryId = category ? category.id : null;
-
-        if (!categoryId) {
-            alert("Не удалось определить ID категории");
-            return;
-        }
 
         try {
-            const payload = {
+            await adminApi.adminBookingsForcePost({
                 officeId: parseInt(officeId),
-                categoryId: parseInt(categoryId),
+                categoryId: category.id,
                 number: selectedSpot.number,
-                startTime: startISO,
-                endTime: endISO
-            };
-
-            await adminApi.adminBookingsForcePost(payload);
+                startTime: start.toISOString(),
+                endTime: end.toISOString()
+            });
             setBlockOpen(false);
-            alert(`Место ${selectedSpot.number} успешно заблокировано`);
             fetchSpots();
+            showModal('Заблокировано', `Место ${selectedSpot.number} недоступно для бронирования`, 'success');
         } catch {
             alert("Ошибка при блокировке. Возможно, данные некорректны.");
         }
@@ -183,9 +191,16 @@ const AdminSpots = () => {
     };
 
     // Отмена блокировки (разблокировка)
-    const handleUnblock = async () => {
-        if (!window.confirm("Вы уверены, что хотите разблокировать это место?")) return;
+    const handleUnblockClick = () => {
+        showModal(
+            'Разблокировка',
+            `Снять блокировку с места ${selectedSpot.number}?`,
+            'confirm',
+            handleUnblock
+        );
+    };
 
+    const handleUnblock = async () => {
         const category = allCategories.find(c => c.name === selectedSpot.category);
 
         try {
@@ -196,6 +211,7 @@ const AdminSpots = () => {
             });
             setInfoOpen(false);
             fetchSpots();
+            showModal('Разблокировано', 'Место снова доступно', 'success');
         } catch {
             alert("Ошибка при разблокировке");
         }
@@ -262,13 +278,14 @@ const AdminSpots = () => {
                     </Typography>
                 </Box>
             ) : (
-                Object.keys(groupedSpots).map((categoryName) => {
-                    const spots = groupedSpots[categoryName];
+                allCategories.map((cat) => {
+                    const spots = groupedSpots[cat.name];
                     const isEmptyCategory = spots.length === 1 && spots[0].number === "";
+
                     return (
-                        <Box key={categoryName} sx={{ mb: 5 }}>
+                        <Box key={cat.id} sx={{ mb: 5 }}>
                             <Typography variant="h6" fontWeight="700" color="primary" gutterBottom>
-                                {categoryName}
+                                {cat.name}
                             </Typography>
                             <Divider sx={{ mb: 3 }} />
                             
@@ -277,11 +294,10 @@ const AdminSpots = () => {
                                     В данной категории пока нет добавленных мест
                                 </Typography>
                             ) : (
-                                <Grid container spacing={2}>
+                                <Grid container spacing={1.5}>
                                     {spots.map((spot) => (
-                                        <Grid item xs={6} sm={4} md={2.4} key={spot.number} sx={{ display: 'flex' }}>
-                                            <Card sx={{ 
-                                                width: '100%',
+                                        <Grid size={{ xs: 4, sm: 2, md: 1.2, lg: 1 }} key={spot.number}>
+                                            <Card variant="outlined" sx={{
                                                 borderRadius: 3, 
                                                 boxShadow: 'none',
                                                 border: spot.available === false ? '1px solid #ef5350' : '1px solid #eee',
@@ -312,7 +328,7 @@ const AdminSpots = () => {
                                                         </IconButton>
                                                     )}
                                                     
-                                                    <IconButton color="error" onClick={() => handleDeleteSpot(spot)} title="Удалить место">
+                                                    <IconButton color="error" onClick={() => handleDeleteClick(spot)} title="Удалить место">
                                                         <DeleteIcon fontSize="small" />
                                                     </IconButton>
                                                 </Box>
@@ -329,7 +345,7 @@ const AdminSpots = () => {
             {/* Модальное окно добавления места */}
             <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Новое парковочное место</DialogTitle>
-                <DialogContent dividers>
+                <DialogContent>
                     <Stack spacing={3} sx={{ mt: 1 }}>
                         <TextField
                             select
@@ -356,7 +372,7 @@ const AdminSpots = () => {
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setAddOpen(false)}>Отмена</Button>
-                    <Button variant="contained" onClick={handleAddSpot}>
+                    <Button variant="contained" disabled={!newData.number.trim() || !newData.categoryId} onClick={handleAddSpot}>
                         Создать
                     </Button>
                 </DialogActions>
@@ -365,7 +381,7 @@ const AdminSpots = () => {
             {/* Модальное окно блокировки */}
             <Dialog open={blockOpen} onClose={() => setBlockOpen(false)} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Блокировка места {selectedSpot?.number}</DialogTitle>
-                <DialogContent dividers>
+                <DialogContent>
                     <Stack spacing={3} sx={{ mt: 1 }}>
                         <TextField
                             label="Дата блокировки"
@@ -400,7 +416,7 @@ const AdminSpots = () => {
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setBlockOpen(false)}>Отмена</Button>
-                    <Button variant="contained" color="error" onClick={handleForceBlock}>
+                    <Button variant="contained" disabled={!blockData.date || !blockData.startTime || !blockData.endTime} color="error" onClick={handleForceBlock}>
                         Заблокировать
                     </Button>
                 </DialogActions>
@@ -409,7 +425,7 @@ const AdminSpots = () => {
             {/* Модальное окно информации о блокировке */}
             <Dialog open={infoOpen} onClose={() => setInfoOpen(false)} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Блокировка места {selectedSpot?.number}</DialogTitle>
-                <DialogContent dividers>
+                <DialogContent>
                     {infoLoading ? (
                         <Box display="flex" justifyContent="center" p={3}><CircularProgress size={24} /></Box>
                     ) : blockingInfo ? (
@@ -447,16 +463,26 @@ const AdminSpots = () => {
                         color="error" 
                         variant="contained"
                         startIcon={<LockOpenIcon />} 
-                        onClick={handleUnblock}
-                        sx={{ borderRadius: 2 }}
+                        onClick={handleUnblockClick}
                     >
                         Разблокировать
                     </Button>
-                    <Button onClick={() => setInfoOpen(false)} variant="outlined" sx={{ borderRadius: 2 }}>
+                    <Button onClick={() => setInfoOpen(false)} variant="outlined">
                         Закрыть
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Модальное окно подтверждения/успеха */}
+            <ConfirmModal 
+                open={modal.open}
+                onClose={() => setModal({ ...modal, open: false })}
+                onConfirm={modal.onConfirm}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+                confirmText={modal.type === 'confirm' ? "Подтвердить" : "Понятно"}
+            />
         </Container>
     );
 };

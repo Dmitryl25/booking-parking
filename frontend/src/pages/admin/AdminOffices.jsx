@@ -7,6 +7,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import CategoryIcon from "@mui/icons-material/Category";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import { adminApi, commonApi } from "../../api/index";
+import ConfirmModal from "../../components/ConfirmModal";
 
 const AdminOffices = () => {
     const navigate = useNavigate();
@@ -22,12 +23,22 @@ const AdminOffices = () => {
     const [editAddress, setEditAddress] = useState('');
     const [selectedOfficeId, setSelectedOfficeId] = useState(null);
 
+    // Состояние для модального окна подтверждения/успеха
+    const [modal, setModal] = useState({
+        open: false,
+        title: '',
+        message: '',
+        type: 'success',
+        onConfirm: null
+    });
+
     // Загрузка офисов
     const fetchOffices = useCallback(async () => {
         setLoading(true);
         try {
             const response = await commonApi.officesGet();
-            setOffices(response.data || []);
+            const sorted = (response.data || []).sort((a, b) => a.id - b.id);
+            setOffices(sorted);
         } catch {
             console.error('Ошибка при загрузке офисов');
         } finally {
@@ -37,13 +48,18 @@ const AdminOffices = () => {
     
     useEffect(() => { fetchOffices(); }, [fetchOffices]);
 
+    const showModal = (title, message, type = 'success', onConfirm = null) => {
+        setModal({ open: true, title, message, type, onConfirm });
+    };
+
     // Добавление офиса
     const handleAddOffice = async () => {
         try {
             await adminApi.adminOfficesPost({ address: newOfficeAddress});
             setOpen(false);
             setNewOfficeAddress('');
-            await fetchOffices();
+            fetchOffices();
+            showModal('Готово', 'Новый офис успешно добавлен', 'success');
         } catch {
             alert("Ошибка: Офис с таким адресом уже существует или данные неверны");
         }
@@ -60,23 +76,34 @@ const AdminOffices = () => {
         try {
             await adminApi.adminOfficesIdPut(selectedOfficeId, { address: editAddress });
             setEditOpen(false);
-            await fetchOffices();
+            fetchOffices();
+            showModal('Обновлено', 'Адрес офиса успешно изменен', 'success');
         } catch {
             alert("Ошибка при обновлении адреса");
         }
     }
 
     // Удаление офиса
-    const handleDeleteOffice = async (id) => {
-        if (window.confirm("Вы уверены, что хотите удалить офис? Все связанные категории и места будут удалены!")) {
-            try {
-                await adminApi.adminOfficesIdDelete(id);
-                await fetchOffices();
-            } catch {
-                console.error('Ошибка при удалении офиса');
-            }
+    const handleDeleteClick = (office) => {
+        showModal(
+            'Удаление офиса',
+            `Вы уверены? Все категории и места в офисе "${office.address}" будут удалены навсегда.`,
+            'confirm',
+            () => confirmDelete(office.id)
+        );
+    }
+
+    const confirmDelete = async (id) => {
+        try {
+            await adminApi.adminOfficesIdDelete(id);
+            fetchOffices();
+            showModal('Удалено', 'Офис полностью удален из системы', 'success');
+        } catch {
+            console.error('Ошибка при удалении офиса');
         }
     }
+
+    const closeModal = () => setModal(prev => ({ ...prev, open: false }));
 
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -116,7 +143,17 @@ const AdminOffices = () => {
                 <Grid container spacing={3}>
                     {offices.map((office) => (
                         <Grid size={{ xs: 12, sm: 6, md: 4 }} key={office.id}>
-                            <Card sx={{ borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <Card 
+                                variant="outlined"
+                                sx={{ 
+                                    borderRadius: 3,
+                                    height: '100%', 
+                                    display: 'flex', 
+                                    flexDirection: 'column',
+                                    transition: '0.3s',
+                                    '&:hover': { boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }
+                                }}
+                            >
                                 <CardContent sx={{ flexGrow: 1 }}>
                                     <Box display="flex" justifyContent="space-between" alignItems="flex-start">
                                         <Typography 
@@ -129,7 +166,7 @@ const AdminOffices = () => {
 
                                         <IconButton 
                                             size="small" 
-                                            color="warning" 
+                                            color="primary" 
                                             onClick={() => handleOpenEdit(office)}
                                             sx={{ mt: -0.5, mr: -0.5 }}
                                         >
@@ -169,7 +206,7 @@ const AdminOffices = () => {
                                         </Button>
                                     </Box>
 
-                                    <IconButton color="error" onClick={() => handleDeleteOffice(office.id)}>
+                                    <IconButton color="error" onClick={() => handleDeleteClick(office)}>
                                         <DeleteIcon />
                                     </IconButton>
                                 </CardActions>
@@ -181,7 +218,7 @@ const AdminOffices = () => {
 
             {/* Модальное окно добавления */}
             <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
-                <DialogTitle>Новый офис</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 800 }}>Новый офис</DialogTitle>
                 <DialogContent>
                     <TextField
                         autoFocus
@@ -196,7 +233,7 @@ const AdminOffices = () => {
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setOpen(false)}>Отмена</Button>
-                    <Button onClick={handleAddOffice} variant="contained" disabled={!newOfficeAddress}>
+                    <Button onClick={handleAddOffice} variant="contained" disabled={!newOfficeAddress.trim()}>
                         Создать
                     </Button>
                 </DialogActions>
@@ -204,7 +241,7 @@ const AdminOffices = () => {
 
             {/* Модальное окно редактирования */}
             <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="xs">
-                <DialogTitle>Редактировать адрес</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 800 }}>Редактировать адрес</DialogTitle>
                 <DialogContent>
                     <TextField
                         autoFocus
@@ -221,14 +258,24 @@ const AdminOffices = () => {
                     <Button onClick={() => setEditOpen(false)}>Отмена</Button>
                     <Button 
                         onClick={handleUpdateOffice} 
-                        variant="contained" 
-                        color="warning"
+                        variant="contained"
                         disabled={!editAddress || editAddress.trim() === ''}
                     >
                         Сохранить
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Модальное окно подтверждения/успеха */}
+            <ConfirmModal 
+                open={modal.open}
+                onClose={closeModal}
+                onConfirm={modal.onConfirm}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+                confirmText={modal.type === 'confirm' ? "Да, удалить" : "Понятно"}
+            />
         </Container>
     )
 }

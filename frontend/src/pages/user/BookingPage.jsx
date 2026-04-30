@@ -5,6 +5,7 @@ import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { userApi } from "../../api/index";
 import { commonApi } from "../../api/index";
+import ConfirmModal from "../../components/ConfirmModal";
 
 const BookingPage = () => {
     const navigate = useNavigate();
@@ -32,6 +33,14 @@ const BookingPage = () => {
     const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchDone, setSearchDone] = useState(false);
+
+    // Состояние для модального окна успеха
+    const [modal, setModal] = useState({
+        open: false,
+        title: '',
+        message: '',
+        type: 'success'
+    });
 
     // Загрузка офисов
     useEffect(() => {
@@ -129,8 +138,13 @@ const BookingPage = () => {
                 startTime: start.toISOString(),
                 endTime: end.toISOString()
             })
-            navigate('/user/bookings');
-            alert("Место успешно забронировано!")
+            
+            setModal({
+                open: true,
+                title: 'Успешно!',
+                message: `Место ${selectedSpot} забронировано на ${new Date(filters.date).toLocaleDateString()}.`,
+                type: 'success'
+            });
         } catch {
             setError("Не удалось забронировать место. Возможно, оно уже занято.")
         }
@@ -145,11 +159,11 @@ const BookingPage = () => {
     const isFormValid = filters.officeId && filters.categoryId && filters.categoryId !== 'none';
 
     return (
-        <Container maxWidth="md" sx={{ mt: 4, mb: 6 }}>
+        <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
             <Button 
                 startIcon={<ArrowBackIcon />} 
                 onClick={() => navigate(-1)} // Возврат на предыдущую страницу в истории
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, textTransform: 'none', color: 'text.secondary' }}
             >
                 Назад
             </Button>
@@ -309,6 +323,16 @@ const BookingPage = () => {
                     )}
                 </Box>
             )}
+
+            <ConfirmModal 
+                open={modal.open}
+                onClose={() => modal.type === 'success' ? navigate('/user/bookings') : setModal({ ...modal, open: false })}
+                onConfirm={() => navigate('/user/bookings')}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+            />
+            
             <Box sx={{ height: '100px' }} />
         </Container>
     )

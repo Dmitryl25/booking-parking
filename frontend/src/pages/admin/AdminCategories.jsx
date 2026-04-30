@@ -6,6 +6,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from "@mui/icons-material/Edit";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { adminApi, commonApi } from "../../api/index";
+import ConfirmModal from "../../components/ConfirmModal";
 
 const AdminCategories = () => {
     const { officeId } = useParams();
@@ -14,15 +15,14 @@ const AdminCategories = () => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // Информация по офису, в котором идет работа
     const [officeAddress, setOfficeAddress] = useState(location.state?.officeAddress || '');
     const fetchOfficeInfo = useCallback(async () => {
         if (!officeAddress) {
         try {
-            const res = await commonApi.officesGet();
-            const currentOffice = res.data.find(o => o.id === parseInt(officeId));
-            if (currentOffice) {
-                setOfficeAddress(currentOffice.address);
-            }
+            const response = await commonApi.officesGet();
+            const currentOffice = response.data.find(o => o.id === parseInt(officeId));
+            if (currentOffice) setOfficeAddress(currentOffice.address);
         } catch (err) {
             console.error("Не удалось подгрузить адрес офиса", err);
         }
@@ -37,12 +37,26 @@ const AdminCategories = () => {
     const [editOpen, setEditOpen] = useState(false);
     const [editData, setEditData] = useState({ id: null, name: '' });
 
+    // Состояние для модального окна подтверждения/успеха
+    const [modal, setModal] = useState({
+        open: false,
+        title: '',
+        message: '',
+        type: 'success',
+        onConfirm: null
+    });
+
+    const showModal = (title, message, type = 'success', onConfirm = null) => {
+        setModal({ open: true, title, message, type, onConfirm });
+    };
+
     // Получение категорий
     const fetchCategories = useCallback(async () => {
         setLoading(true);
         try {
             const response = await commonApi.officesOfficeIdCategoriesGet(officeId);
-            setCategories(response.data || []);
+            const sorted = (response.data || []).sort((a, b) => a.id - b.id);
+            setCategories(sorted);
         } catch (err) {
             console.error("Ошибка при загрузке категорий", err);
         } finally {
@@ -63,7 +77,11 @@ const AdminCategories = () => {
         const spotsArray = getSpotsArray(formData.spots);
 
         if (spotsArray.length !== parseInt(formData.count)) {
-            alert(`Ошибка: Вы указали количество ${formData.count}, но ввели ${spotsArray.length} названий мест.`);
+            showModal(
+                'Ошибка валидации', 
+                `Вы указали количество ${formData.count}, но ввели ${spotsArray.length} названий мест.`, 
+                'error'
+            );
             return;
         }
 
@@ -77,6 +95,7 @@ const AdminCategories = () => {
             setAddOpen(false);
             setFormData({ name: '', count: '', spots: '' });
             fetchCategories();
+            showModal('Успешно', 'Категория и места созданы', 'success');
         } catch {
             alert("Ошибка при создании категории. Возможно, такая категория уже есть.");
         }
@@ -88,20 +107,29 @@ const AdminCategories = () => {
             await adminApi.adminOfficesOfficeIdCategoriesIdPut(officeId, editData.id, { name: editData.name });
             setEditOpen(false);
             fetchCategories();
+            showModal('Обновлено', 'Название категории успешно изменено', 'success');
         } catch {
             alert("Ошибка при обновлении названия");
         }
     }
 
     // Удаление категории
-    const handleDeleteCategory = async (id) => {
-        if (window.confirm("Внимание! Вместе с категорией удалятся ВСЕ закрепленные за ней места. Продолжить?")) {
-            try {
-                await adminApi.adminOfficesOfficeIdCategoriesIdDelete(officeId, id);
-                fetchCategories();
-            } catch (err) {
-                console.error(err);
-            }
+    const handleDeleteClick = (cat) => {
+        showModal(
+            'Удаление категории',
+            `Внимание! Удаление категории "${cat.name}" приведет к удалению ВСЕХ связанных с ней мест. Продолжить?`,
+            'confirm',
+            () => confirmDelete(cat.id)
+        );
+    }
+
+    const confirmDelete = async (id) => {
+        try {
+            await adminApi.adminOfficesOfficeIdCategoriesIdDelete(officeId, id);
+            fetchCategories();
+            showModal('Удалено', 'Категория и места успешно удалены', 'success');
+        } catch (err) {
+            console.error(err);
         }
     }
 
@@ -110,7 +138,7 @@ const AdminCategories = () => {
             <Button 
                 startIcon={<ArrowBackIcon />} 
                 onClick={() => navigate('/admin/offices')}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, textTransform: 'none', color: 'text.secondary' }}
             >
                 Назад
             </Button>
@@ -150,22 +178,10 @@ const AdminCategories = () => {
                     </Typography>
                 </Paper>
             ) : (
-                <Grid container spacing={3} sx={{ width: '100%', margin: 0 }}> 
+                <Grid container spacing={3}> 
                     {categories.map((cat) => (
-                        <Grid 
-                            item 
-                            xs={12} 
-                            sm={6} 
-                            md={4} 
-                            key={cat.id} 
-                            sx={{ 
-                                display: 'flex',
-                                flexBasis: { xs: '100%', sm: '50%', md: '33.33%' },
-                                maxWidth: { xs: '100%', sm: '50%', md: '33.33%' }
-                            }}
-                        >
-                            <Card sx={{ 
-                                width: '100%',
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={cat.id}>
+                            <Card sx={{
                                 display: 'flex', 
                                 flexDirection: 'column', 
                                 borderRadius: 3, 
@@ -198,7 +214,6 @@ const AdminCategories = () => {
                                     <Button 
                                         size="small" 
                                         variant="text"
-                                        color="warning" 
                                         startIcon={<EditIcon />}
                                         onClick={() => {
                                             setEditData({ id: cat.id, name: cat.name });
@@ -213,7 +228,7 @@ const AdminCategories = () => {
                                         variant="text"
                                         color="error" 
                                         startIcon={<DeleteIcon />}
-                                        onClick={() => handleDeleteCategory(cat.id)}
+                                        onClick={() => handleDeleteClick(cat)}
                                         sx={{ textTransform: 'none', fontWeight: 600 }}
                                     >
                                         Удалить
@@ -227,8 +242,8 @@ const AdminCategories = () => {
 
             {/* Модальное окно добавления */}
             <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm">
-                <DialogTitle>Новая категория для {officeAddress}</DialogTitle>
-                <DialogContent dividers>
+                <DialogTitle sx={{ fontWeight: 800 }}>Новая категория для {officeAddress}</DialogTitle>
+                <DialogContent>
                     <TextField
                         label="Название"
                         fullWidth margin="normal"
@@ -254,13 +269,13 @@ const AdminCategories = () => {
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setAddOpen(false)}>Отмена</Button>
-                    <Button variant="contained" onClick={handleAddCategory}>Создать</Button>
+                    <Button variant="contained" onClick={handleAddCategory} disabled={!formData.name || !formData.count || !formData.spots}>Создать</Button>
                 </DialogActions>
             </Dialog>
 
             {/* Модальное окно редактирования */}
             <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="xs">
-                <DialogTitle>Редактировать категорию</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 800 }}>Редактировать категорию</DialogTitle>
                 <DialogContent>
                     <TextField
                         label="Новое название"
@@ -271,11 +286,22 @@ const AdminCategories = () => {
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setEditOpen(false)}>Отмена</Button>
-                    <Button variant="contained" color="warning" onClick={handleEditCategory}>
+                    <Button variant="contained" onClick={handleEditCategory} disabled={!editData.name.trim()}>
                         Сохранить
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Модальное окно подтверждения/успеха */}
+            <ConfirmModal 
+                open={modal.open}
+                onClose={() => setModal({ ...modal, open: false })}
+                onConfirm={modal.onConfirm}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+                confirmText={modal.type === 'confirm' ? "Да, удалить" : "Понятно"}
+            />
         </Container>
     )
 }
