@@ -32,17 +32,6 @@ public class AdminController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("admin/users")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        try{
-            AuthResponse ans = authService.register(request);
-        }
-        catch (Exception e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
-        }
-        return new ResponseEntity<>("User created", HttpStatus.CREATED);
-    }
-
 
     @GetMapping("admin/users")
     public ResponseEntity<List<UserView>> getAllUsers() {
