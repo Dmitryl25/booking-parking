@@ -13,12 +13,22 @@ import org.springframework.web.bind.annotation.*;
 import static java.util.Objects.isNull;
 
 @RestController
-@RequestMapping("api/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
     private AuthService authService;
 
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        try{
+            AuthResponse ans = authService.register(request);
+        }
+        catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>("User created", HttpStatus.CREATED);
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -37,7 +47,7 @@ public class AuthController {
         AuthResponse ans;
         try{
             ans =  authService.refreshToken(request);
-            if (isNull(ans.getRefreshToken()) || ans.getRefreshToken().isEmpty()) {
+            if (isNull(ans.getRefresh_token()) || ans.getRefresh_token().isEmpty()) {
                 return new ResponseEntity<>("Пропущен рефреш-токен или передан null", HttpStatus.BAD_REQUEST);
             }
         }

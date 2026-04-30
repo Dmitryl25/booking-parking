@@ -1,6 +1,6 @@
 package com.example.demo.config;
 
-import com.example.demo.entity.User;
+
 import com.example.demo.service.UserDetailsServiceImpl;
 import com.example.demo.util.JwtUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,7 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -29,9 +28,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    public void doFilterInternal(HttpServletRequest request,
-                                 HttpServletResponse response,
-                                 FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+
+        if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String authHeader = request.getHeader("Authorization");
 
@@ -49,7 +54,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
                         if (jwtUtil.validateAccessToken(token, userDetails)) {
-                            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
+                            String formattedRole = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+                            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(formattedRole);
 
                             UsernamePasswordAuthenticationToken authToken =
                                     new UsernamePasswordAuthenticationToken(
@@ -60,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                             SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                            System.out.println("✅ Аутентифицирован: " + email + " с ролью: " + role);
+                            System.out.println("✅ Аутентифицирован: " + email + " с ролью: " + formattedRole);
                         }
                     }
                 }

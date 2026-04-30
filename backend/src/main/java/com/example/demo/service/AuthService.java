@@ -75,7 +75,7 @@ public class AuthService {
 
 
     public AuthResponse refreshToken(RefreshTokenRequest request) {
-        String refreshToken = request.getRefreshToken();
+        String refreshToken = request.getRefresh_token();
 
         if (!jwtUtil.validateRefreshToken(refreshToken)) {
             throw new RuntimeException("Invalid or expired refresh token");
