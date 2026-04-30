@@ -30,13 +30,13 @@ const Login = () => {
             const response = await authApi.authLoginPost({ email: email, password: password });
 
             // Ответ
-            const { accessToken, refreshToken } = response.data;
+            const { access_token, refresh_token } = response.data;
             
             // Обновление глобального состояния
-            login(accessToken, refreshToken);
+            login(access_token, refresh_token);
 
             // Навигация пользователя
-            const decoded = jwtDecode(accessToken);
+            const decoded = jwtDecode(access_token);
             const role = decoded.role;
             if (role.includes('ADMIN')) {
                 navigate('/admin/offices');

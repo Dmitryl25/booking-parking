@@ -20,27 +20,28 @@ api.interceptors.response.use(
         const originalRequest = error.config;
 
         // Проверка на исключение страницы логина
-        const isLoginRequest = originalRequest.url.includes('/auth/login');
+        const isAuthRequest = originalRequest.url.includes('/auth/login') || 
+                              originalRequest.url.includes('/auth/refresh');
 
-        if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest) {
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
             originalRequest._retry = true;
-            const refreshToken = localStorage.getItem('refreshToken');
+            const storedRefreshToken = localStorage.getItem('refreshToken');
 
-            if (refreshToken) {
+            if (storedRefreshToken) {
                 try {
                     // Запрос на рефреш токена
                     const response = await axios.post('http://localhost:8080/api/auth/refresh', {
-                        refresh_token: refreshToken
+                        refresh_token: storedRefreshToken
                     });
 
-                    const { accessToken: newAccess, refreshToken: newRefresh } = response.data;
+                    const { access_token, refresh_token } = response.data;
 
                     // Обновляем токены
-                    localStorage.setItem('accessToken', newAccess);
-                    localStorage.setItem('refreshToken', newRefresh);
+                    localStorage.setItem('accessToken', access_token);
+                    localStorage.setItem('refreshToken', refresh_token);
 
                     // Обновляем заголовок в упавшем запросе и повторяем его
-                    originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+                    originalRequest.headers.Authorization = `Bearer ${access_token}`;
 
                     return api(originalRequest);
                 } catch (refreshError) {

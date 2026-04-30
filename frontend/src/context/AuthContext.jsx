@@ -20,18 +20,18 @@ export const AuthProvider = ({ children }) => {
     })
 
     // Функция входа: сохраняет данные в состояние и в браузер
-    const login = (accessToken, refreshToken) => {
-        if (!accessToken || !refreshToken) {
+    const login = (access_token, refresh_token) => {
+        if (!access_token || !refresh_token) {
             console.error("Попытка логина с пустыми токенами");
             return
         }
         
-        const decoded = jwtDecode(accessToken);
+        const decoded = jwtDecode(access_token);
         
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('accessToken', access_token);
+        localStorage.setItem('refreshToken', refresh_token);
 
-        setUser({ token: accessToken, role: decoded.role });
+        setUser({ token: access_token, role: decoded.role });
     }
 
     // Функция выхода: все очищает
