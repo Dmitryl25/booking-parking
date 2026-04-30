@@ -34,14 +34,14 @@ api.interceptors.response.use(
                         refresh_token: storedRefreshToken
                     });
 
-                    const { access_token, refresh_token } = response.data;
+                    const { accessToken, refreshToken } = response.data;
 
                     // Обновляем токены
-                    localStorage.setItem('accessToken', access_token);
-                    localStorage.setItem('refreshToken', refresh_token);
+                    localStorage.setItem('accessToken', accessToken);
+                    localStorage.setItem('refreshToken', refreshToken);
 
                     // Обновляем заголовок в упавшем запросе и повторяем его
-                    originalRequest.headers.Authorization = `Bearer ${access_token}`;
+                    originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
                     return api(originalRequest);
                 } catch (refreshError) {

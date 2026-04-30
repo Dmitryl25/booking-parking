@@ -36,6 +36,15 @@ const AdminUsers = () => {
         role: 'ROLE_USER',
     });
 
+    // Регулярные выражения
+    const EMAIL_REGEX = /\S+@\S+\.\S+/;
+    const PLATE_REGEX = /^[А-Яа-яA-Za-z]\d{3}[А-Яа-яA-Za-z]{2}\d{3}$/;
+    const isEmailValid = (email) => EMAIL_REGEX.test(email);
+    const isPlateValid = (plate) => PLATE_REGEX.test(plate);
+
+    // Проверка на заполненность полей
+    const isFormInvalid = !formData.name || !isEmailValid(formData.email) || !isPlateValid(formData.licensePlate) || (!openEdit && !formData.password);
+
     const showModal = (title, message, type = 'success', onConfirm = null) => {
         setModal({ open: true, title, message, type, onConfirm });
     };
@@ -68,14 +77,6 @@ const AdminUsers = () => {
 
     // Создание пользователя
     const handleCreateUser = async () => {
-        // Валидация номера машины (буква, 3 цифры, 2 буквы, 3 цифры)
-        const plateRegex = /^[А-Яа-яA-Za-z]\d{3}[А-Яа-яA-Za-z]{2}\d{3}$/;
-        
-        if (!plateRegex.test(formData.licensePlate)) {
-            showModal('Ошибка валидации', 'Номер машины должен быть в формате: А111АА199', 'error');
-            return;
-        }
-
         try {
             await adminApi.adminUsersPost(formData);
             setOpenAdd(false);
@@ -83,7 +84,7 @@ const AdminUsers = () => {
             fetchUsers();
             showModal('Готово!', 'Сотрудник успешно добавлен в систему', 'success');
         } catch {
-            alert("Ошибка при создании. Проверьте почту или формат данных.");
+            showModal('Ошибка', 'Не удалось создать пользователя. Возможно, такой Email уже занят.', 'error');
         }
     };
 
@@ -214,6 +215,8 @@ const AdminUsers = () => {
                             fullWidth
                             required
                             value={formData.email}
+                            error={formData.email !== '' && !isEmailValid(formData.email)}
+                            helperText={formData.email !== '' && !isEmailValid(formData.email) ? "Неверный формат почты" : ""}
                             onChange={(e) => setFormData({...formData, email: e.target.value})}
                         />
                         <TextField 
@@ -222,7 +225,9 @@ const AdminUsers = () => {
                             fullWidth
                             required
                             value={formData.licensePlate}
-                            onChange={(e) => setFormData({...formData, licensePlate: e.target.value})}
+                            error={formData.licensePlate !== '' && !isPlateValid(formData.licensePlate)}
+                            helperText={formData.licensePlate !== '' && !isPlateValid(formData.licensePlate) ? "Формат: А111АА199 (буква, 3 цифры, 2 буквы, 3 цифры)" : ""}
+                            onChange={(e) => setFormData({...formData, licensePlate: e.target.value.toUpperCase()})}
                         />
                         <TextField 
                             label="Пароль"
@@ -262,7 +267,7 @@ const AdminUsers = () => {
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setOpenAdd(false)}>Отмена</Button>
-                    <Button variant="contained" onClick={handleCreateUser} disabled={!formData.name || !formData.email || !formData.licensePlate || !formData.password}>Создать</Button>
+                    <Button variant="contained" onClick={handleCreateUser} disabled={isFormInvalid}>Создать</Button>
                 </DialogActions>
             </Dialog>
 
@@ -282,7 +287,9 @@ const AdminUsers = () => {
                             placeholder="А111АА199"
                             fullWidth
                             value={formData.licensePlate}
-                            onChange={(e) => setFormData({...formData, licensePlate: e.target.value})}
+                            error={formData.licensePlate !== '' && !isPlateValid(formData.licensePlate)}
+                            helperText={formData.licensePlate !== '' && !isPlateValid(formData.licensePlate) ? "Неверный формат номера" : ""}
+                            onChange={(e) => setFormData({...formData, licensePlate: e.target.value.toUpperCase()})}
                         />
                         
                         <Divider sx={{ my: 1 }}><Typography fontWeight="500">Пароль</Typography></Divider>
@@ -320,7 +327,7 @@ const AdminUsers = () => {
                     }}>
                         Закрыть
                     </Button>
-                    <Button variant="contained" onClick={handleUpdateUser}>
+                    <Button variant="contained" disabled={!formData.name || !isPlateValid(formData.licensePlate)} onClick={handleUpdateUser}>
                         Сохранить изменения
                     </Button>
                 </DialogActions>
