@@ -140,6 +140,15 @@ const AdminSpots = () => {
     };
 
     // Блокирование парковочного места
+    const handleForceBlockClick = () => {
+        showModal(
+            'Блокировка',
+            `Заблокировать место ${selectedSpot.number}? При блокировке существующие брони на это место удаляются`,
+            'confirm',
+            handleForceBlock
+        );
+    };
+
     const handleForceBlock = async () => {
         const start = new Date(`${blockData.date}T${blockData.startTime}:00`);
         const end = new Date(`${blockData.date}T${blockData.endTime}:00`);
@@ -416,7 +425,7 @@ const AdminSpots = () => {
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setBlockOpen(false)}>Отмена</Button>
-                    <Button variant="contained" disabled={!blockData.date || !blockData.startTime || !blockData.endTime} color="error" onClick={handleForceBlock}>
+                    <Button variant="contained" disabled={!blockData.date || !blockData.startTime || !blockData.endTime} color="error" onClick={handleForceBlockClick}>
                         Заблокировать
                     </Button>
                 </DialogActions>
