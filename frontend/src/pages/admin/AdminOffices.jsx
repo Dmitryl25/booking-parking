@@ -55,13 +55,29 @@ const AdminOffices = () => {
     // Добавление офиса
     const handleAddOffice = async () => {
         try {
-            await adminApi.adminOfficesPost({ address: newOfficeAddress});
+            const response = await adminApi.adminOfficesPost({ address: newOfficeAddress});
+            const createdOffice = response.data;
+
             setOpen(false);
             setNewOfficeAddress('');
+            showModal(
+                'Готово', 
+                'Новый офис успешно добавлен. Сейчас вы будете перенаправлены к настройке категорий.', 
+                'success',
+                () => {
+                    navigate(`/admin/offices/${createdOffice}/categories`, {
+                        state: { officeAddress: createdOffice.address }
+                    })
+                }
+            );
+
             fetchOffices();
-            showModal('Готово', 'Новый офис успешно добавлен', 'success');
-        } catch {
-            alert("Ошибка: Офис с таким адресом уже существует или данные неверны");
+        } catch (err) {
+            if (err.response?.status === 409) {
+                showModal('Ошибка', 'Офис с таким адресом уже существует', 'error');
+            } else {
+                alert("Ошибка при создании офиса");
+            }
         }
     }
 
