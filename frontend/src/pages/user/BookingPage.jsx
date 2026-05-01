@@ -7,6 +7,36 @@ import { userApi } from "../../api/index";
 import { commonApi } from "../../api/index";
 import ConfirmModal from "../../components/ConfirmModal";
 
+// Получение времени + 1 час
+const getTimeWithOffset = (offsetHours) => {
+    const d = new Date();
+    d.setHours(d.getHours() + offsetHours, 0, 0, 0); 
+    const h = String(d.getHours()).padStart(2, '0');
+    return `${h}:00`;
+};
+
+// Функция для отправки данных с локальным часовым поясом
+const toLocalISOString = (date, timeStr) => {
+    const [hours, minutes] = timeStr.split(':');
+    const d = new Date(date);
+    d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+    const tzo = -d.getTimezoneOffset();
+    const dif = tzo >= 0 ? '+' : '-';
+    const pad = (num) => String(Math.floor(Math.abs(num))).padStart(2, '0');
+    
+    // Формат: YYYY-MM-DDTHH:mm:ss+HH:mm
+    return d.getFullYear() +
+        '-' + pad(d.getMonth() + 1) +
+        '-' + pad(d.getDate()) +
+        'T' + pad(d.getHours()) +
+        ':' + pad(d.getMinutes()) +
+        ':' + pad(d.getSeconds()) +
+        dif + pad(tzo / 60) +
+        ':' + pad(tzo % 60);
+};
+
+
 const BookingPage = () => {
     const navigate = useNavigate();
 
@@ -15,16 +45,20 @@ const BookingPage = () => {
     const [categories, setCategories] = useState([]);
     const [spots, setSpots] = useState([]);
 
-    // Текущая дата пользователя
-    const localToday = new Date().toISOString().split('T')[0];
+    // Ограничения для даты
+    const now = new Date();
+    const minDateStr = now.toISOString().split('T')[0];
+    const maxDate = new Date();
+    maxDate.setDate(now.getDate() + 14);
+    const maxDateStr = maxDate.toISOString().split('T')[0];
 
     // Данные формы
     const [filters, setFilters] = useState({
         officeId: '',
         categoryId: '',
-        date: localToday, // Текущая дата
-        startTime: '09:00',
-        endTime: '18:00'
+        date: minDateStr,
+        startTime: getTimeWithOffset(1),
+        endTime: getTimeWithOffset(2)
     });
 
     // Вспомогательные состояния
@@ -88,8 +122,23 @@ const BookingPage = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFilters(prev => ({ ...prev, [name]: value }));
-        if (name === 'officeId') setFilters(prev => ({ ...prev, categoryId: '' }));
+
+        setFilters(prev => {
+            const newFilters = { ...prev, [name]: value };
+
+            if (name === 'startTime') {
+                const [hours, minutes] = value.split(':');
+                const date = new Date();
+                date.setHours(parseInt(hours) + 1, parseInt(minutes));
+                
+                const newEndHours = String(date.getHours()).padStart(2, '0');
+                const newEndMins = String(date.getMinutes()).padStart(2, '0');
+                newFilters.endTime = `${newEndHours}:${newEndMins}`;
+            }
+
+            return newFilters;
+        });
+
         setSearchDone(false); // Сброс результата при изменении фильтров
         setSelectedSpot(null);
         setError(null);
@@ -98,23 +147,30 @@ const BookingPage = () => {
     // Поиск парковочных мест
     const handleSearch = async () => {
         setError(null);
-        setLoading(true);
 
         const start = new Date(`${filters.date}T${filters.startTime}:00`);
         const end = new Date(`${filters.date}T${filters.endTime}:00`);
+        const currentTime = new Date();
 
-        if (new Date(start) >= new Date(end)) {
-            setError("Время конца не может быть раньше или равно времени начала");
-            setLoading(false);
-            return
+        // Валидация - начало не в прошлом
+        if (start < currentTime) {
+            setError("Нельзя забронировать на время в прошлом");
+            return;
         }
 
+        // Валидация - конец позже начала
+        if (start >= end) {
+            setError("Время конца бронирования должно быть позже времени начала");
+            return;
+        }
+
+        setLoading(true);
         try {
             const response = await userApi.bookingsSearchPost({
                 officeId: filters.officeId,
                 categoryId: filters.categoryId,
-                startTime: start.toISOString(),
-                endTime: end.toISOString()
+                startTime: toLocalISOString(filters.date, filters.startTime),
+                endTime: toLocalISOString(filters.date, filters.endTime)
             });
             setSpots(response.data);
             setSearchDone(true);
@@ -127,16 +183,13 @@ const BookingPage = () => {
 
     // Бронирование
     const handleBooking = async () => {
-        const start = new Date(`${filters.date}T${filters.startTime}:00`);
-        const end = new Date(`${filters.date}T${filters.endTime}:00`);
-
         try {
             await userApi.bookingsPost({
                 officeId: filters.officeId,
                 categoryId: filters.categoryId,
                 number: selectedSpot,
-                startTime: start.toISOString(),
-                endTime: end.toISOString()
+                startTime: toLocalISOString(filters.date, filters.startTime),
+                endTime: toLocalISOString(filters.date, filters.endTime)
             })
             
             setModal({
@@ -150,12 +203,7 @@ const BookingPage = () => {
         }
     }
 
-    // Ограничения для даты
-    const maxDate = new Date();
-    maxDate.setMonth(maxDate.getMonth() + 1);
-    const maxDateStr = maxDate.toISOString().split('T')[0];
-    const minDateStr = new Date().toISOString().split('T')[0];
-
+    // Заполненость формы
     const isFormValid = filters.officeId && filters.categoryId && filters.categoryId !== 'none';
 
     return (
@@ -238,7 +286,7 @@ const BookingPage = () => {
                 </Card>
             )}
 
-            {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+            {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
 
             {searchDone && (
                 <Box>
