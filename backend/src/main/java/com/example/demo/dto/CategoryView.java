@@ -2,7 +2,7 @@ package com.example.demo.dto;
 
 import lombok.Getter;
 
-import javax.persistence.Column;
+import jakarta.persistence.Column;
 
 @Getter
 public class CategoryView {

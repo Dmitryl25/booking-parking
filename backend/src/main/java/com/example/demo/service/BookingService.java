@@ -13,7 +13,6 @@ import com.example.demo.repository.UserRepository;
 import org.passay.CharacterData;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
-import org.passay.LengthRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -141,7 +140,6 @@ public class BookingService {
     public void addSpot(AddSpot addSpot){
         if (officeRepository.existsById(addSpot.getOfficeId())) {
             if (catRepository.existsById(addSpot.getCategoryId())) {
-                Office office = officeRepository.getReferenceById(addSpot.getOfficeId());
                 List<Category> categories = getAllCategoryOffice(addSpot.getOfficeId());
                 Category category = catRepository.getReferenceById(addSpot.getCategoryId());
                 if (categories.contains(category)) {
@@ -176,7 +174,6 @@ public class BookingService {
     public void delete_Spot(AddSpot addSpot){
         if (officeRepository.existsById(addSpot.getOfficeId())) {
             if (catRepository.existsById(addSpot.getCategoryId())) {
-                Office office = officeRepository.getReferenceById(addSpot.getOfficeId());
                 List<Category> categories = getAllCategoryOffice(addSpot.getOfficeId());
                 Category category = catRepository.getReferenceById(addSpot.getCategoryId());
                 if (categories.contains(category)) {
@@ -258,13 +255,13 @@ public class BookingService {
         Category cat = catRepository.getReferenceById(spotRequest.getCategoryId());
         Integer count = cat.getSpot_count();
         Category category = catRepository.getReferenceById(spotRequest.getCategoryId());
-        List<SpotResponse> spotResponses = new ArrayList<SpotResponse>();
+        List<SpotResponse> spotResponses = new ArrayList<>();
         String[] sp = {};
         if (!category.getSpotsName().isEmpty()) {
             sp = category.getSpotsName().split(" ");
         }
-        for (Integer i = 1; i < count + 1; i++) {
-            String spotNum = i.toString();
+        for (int i = 1; i < count + 1; i++) {
+            String spotNum = Integer.toString(i);
             if (sp.length == count){
                 spotNum = sp[i - 1];
             }

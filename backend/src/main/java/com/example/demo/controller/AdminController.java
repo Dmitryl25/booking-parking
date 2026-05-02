@@ -3,7 +3,6 @@ package com.example.demo.controller;
 import com.example.demo.dto.*;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.Office;
-import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.AuthService;
 import com.example.demo.service.BookingService;
@@ -14,8 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.ZonedDateTime;
-import java.util.HashMap;
+
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +29,17 @@ public class AdminController {
 
     @Autowired
     private AuthService authService;
+
+    @PostMapping("admin/users")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        try{
+            AuthResponse ans = authService.register(request);
+        }
+        catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>("User created", HttpStatus.CREATED);
+    }
 
 
     @GetMapping("admin/users")
