@@ -12,7 +12,8 @@ const ConfirmModal = ({
     message,
     type = 'success', // 'success', 'error', 'warning', 'confirm'
     confirmText = 'Подтвердить',
-    cancelText = 'Отмена'
+    cancelText = 'Отмена',
+    disabled = false
 }) => {
     const getIcon = () => {
         switch(type) {
@@ -26,7 +27,7 @@ const ConfirmModal = ({
     return (
         <Dialog 
             open={open} 
-            onClose={onClose}
+            onClose={disabled ? null : onClose}
             fullWidth
             maxWidth="xs"
         >
@@ -48,6 +49,7 @@ const ConfirmModal = ({
                         onClick={onClose} 
                         variant="outlined" 
                         fullWidth
+                        disabled={disabled}
                     >
                         {cancelText}
                     </Button>
@@ -55,12 +57,16 @@ const ConfirmModal = ({
                 
                 <Button 
                     onClick={() => {
-                        if (onConfirm) onConfirm();
-                        onClose();
+                        if (onConfirm) {
+                            onConfirm();
+                        } else {
+                            onClose();
+                        }
                     }} 
-                    variant="contained" 
-                    color={type === 'error' || title.toLowerCase().includes('удалить') ? 'error' : 'primary'}
+                    variant="contained"
+                    color={type === 'error' || title.toLowerCase().includes('удалить') || title.toLowerCase().includes('отмена') ? 'error' : 'primary'}
                     fullWidth
+                    disabled={disabled}
                 >
                     {type === 'confirm' ? confirmText : 'Понятно'}
                 </Button>

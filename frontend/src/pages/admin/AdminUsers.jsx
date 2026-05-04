@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Button, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack, MenuItem, InputAdornment, Tooltip, Divider, CircularProgress } from '@mui/material';
+import { Container, Typography, Button, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack, MenuItem, InputAdornment, Tooltip, Divider, CircularProgress, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -13,6 +13,8 @@ import ConfirmModal from '../../components/ConfirmModal';
 const AdminUsers = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
 
     // Состояния для модальных окон
@@ -42,22 +44,49 @@ const AdminUsers = () => {
     const isEmailValid = (email) => EMAIL_REGEX.test(email);
     const isPlateValid = (plate) => PLATE_REGEX.test(plate);
 
-    // Проверка на заполненность полей
-    const isFormInvalid = !formData.name || !isEmailValid(formData.email) || !isPlateValid(formData.licensePlate) || (!openEdit && !formData.password);
-
     const showModal = (title, message, type = 'success', onConfirm = null) => {
         setModal({ open: true, title, message, type, onConfirm });
+    };
+
+    // Обработчик ошибок
+    const handleApiError = (err, defaultMsg) => {
+        if (err.response) {
+            const status = err.response.status;
+            switch (status) {
+                case 401:
+                    setError("Ваша сессия истекла. Пожалуйста, войдите в систему заново.");
+                    break;
+                case 403:
+                    setError("У вас недостаточно прав для выполнения этого действия.");
+                    break;
+                case 404:
+                    setError("Пользователь не найден.");
+                    fetchUsers()
+                    break;
+                case 409:
+                    setError("Пользователь с таким Email уже существует в системе.");
+                    break;
+                case 500:
+                    setError("Ошибка сервера (500). Попробуйте обновить страницу позже.");
+                    break;
+                default:
+                    setError(`${defaultMsg} (Код: ${status})`);
+            }
+        } else {
+            setError("Не удалось связаться с сервером. Проверьте интернет-соединение.");
+        }
     };
 
     // Получение списка пользователей
     const fetchUsers = async () => {
         setLoading(true);
+        setError(null);
         try {
             const response = await adminApi.adminUsersGet();
             const sorted = (response.data || []).sort((a, b) => a.id - b.id);
             setUsers(sorted);
         } catch (err) {
-            console.error("Ошибка загрузки пользователей", err);
+            handleApiError(err, "Не удалось загрузить список пользователей");
         } finally {
             setLoading(false);
         }
@@ -70,26 +99,32 @@ const AdminUsers = () => {
         try {
             const res = await adminApi.adminGeneratePasswordPost();
             setFormData({ ...formData, password: res.data.password });
-        } catch {
-            alert("Ошибка генерации");
+        } catch (err) {
+            handleApiError(err, "Ошибка генерации пароля");
         }
     };
 
     // Создание пользователя
     const handleCreateUser = async () => {
+        setActionLoading(true);
+        setError(null);
         try {
             await adminApi.adminUsersPost(formData);
             setOpenAdd(false);
             setFormData({ email: '', name: '', licensePlate: '', password: '', role: 'ROLE_USER' });
             fetchUsers();
             showModal('Готово!', 'Сотрудник успешно добавлен в систему', 'success');
-        } catch {
-            showModal('Ошибка', 'Не удалось создать пользователя. Возможно, такой Email уже занят.', 'error');
+        } catch (err) {
+            handleApiError(err, "Ошибка создания пользователя");
+        } finally {
+            setActionLoading(false);
         }
     };
 
     // Обновление (ФИО и номер машины)
     const handleUpdateUser = async () => {
+        setActionLoading(true);
+        setError(null);
         try {
             await adminApi.adminUsersIdPut(selectedUser.id, {
                 name: formData.name,
@@ -98,8 +133,10 @@ const AdminUsers = () => {
             setOpenEdit(false);
             fetchUsers();
             showModal('Обновлено', 'Данные сотрудника успешно изменены', 'success');
-        } catch {
-            alert("Ошибка обновления");
+        } catch (err) {
+            handleApiError(err, "Ошибка обновления данных пользователя");
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -109,8 +146,8 @@ const AdminUsers = () => {
             const res = await adminApi.adminUsersIdResetPasswordPost(selectedUser.id);
             // Запись нового пароля в состояние, чтобы он отобразился в поле
             setFormData({ ...formData, tempPassword: res.data.password });
-        } catch {
-            alert("Ошибка сброса пароля");
+        } catch (err) {
+            handleApiError(err, "Ошибка сброса пароля");
         }
     };
 
@@ -126,12 +163,13 @@ const AdminUsers = () => {
 
     // Удаление пользователя
     const confirmDelete = async (id) => {
+        setError(null);
         try {
             await adminApi.adminUsersIdDelete(id);
             fetchUsers();
             showModal('Удалено', 'Сотрудник полностью удален из системы', 'success');
-        } catch {
-            alert("Ошибка удаления");
+        } catch (err) {
+            handleApiError(err, "Не удалось удалить пользователя");
         }
     };
 
@@ -145,15 +183,20 @@ const AdminUsers = () => {
                     onClick={() => {
                         setFormData({ email: '', name: '', licensePlate: '', password: '', role: 'ROLE_USER' });
                         setOpenAdd(true);
+                        setError(null);
                     }}
                 >
                     Добавить сотрудника
                 </Button>
             </Box>
 
+            {error && !openAdd && !openEdit && (
+                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>{error}</Alert>
+            )}
+
             {loading ? (
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight="40vh">
-                    <CircularProgress size={40} thickness={4} />
+                    <CircularProgress thickness={4} />
                 </Box>
             ) : (
                 <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
@@ -180,7 +223,7 @@ const AdminUsers = () => {
                                         <Stack direction="row" spacing={1} justifyContent="flex-end">
                                             <IconButton color="primary" onClick={() => {
                                                 setSelectedUser(user);
-                                                setFormData({ name: user.name, licensePlate: user.licensePlate });
+                                                setFormData({ name: user.name, licensePlate: user.licensePlate, tempPassword: '' });
                                                 setOpenEdit(true);
                                             }}>
                                                 <EditIcon fontSize="small" />
@@ -198,9 +241,10 @@ const AdminUsers = () => {
             )}
 
             {/* Модальное окно добавления */}
-            <Dialog open={openAdd} onClose={() => setOpenAdd(false)} fullWidth maxWidth="xs">
+            <Dialog open={openAdd} onClose={() => !actionLoading && setOpenAdd(false)} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Новый сотрудник</DialogTitle>
                 <DialogContent>
+                    {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
                     <Stack spacing={2} sx={{ mt: 1 }}>
                         <TextField 
                             label="ФИО"
@@ -266,8 +310,10 @@ const AdminUsers = () => {
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setOpenAdd(false)}>Отмена</Button>
-                    <Button variant="contained" onClick={handleCreateUser} disabled={isFormInvalid}>Создать</Button>
+                    <Button onClick={() => setOpenAdd(false)} disabled={actionLoading}>Отмена</Button>
+                    <Button variant="contained" onClick={handleCreateUser} disabled={actionLoading || !formData.name || !isEmailValid(formData.email) || !isPlateValid(formData.licensePlate) || !formData.password}>
+                        {actionLoading ? <CircularProgress size={24} /> : "Создать"}
+                    </Button>
                 </DialogActions>
             </Dialog>
 
@@ -275,6 +321,7 @@ const AdminUsers = () => {
             <Dialog open={openEdit} onClose={() => setOpenEdit(false)} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Редактирование профиля</DialogTitle>
                 <DialogContent>
+                    {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
                     <Stack spacing={2} sx={{ mt: 1 }}>
                         <TextField 
                             label="ФИО" 
@@ -327,8 +374,8 @@ const AdminUsers = () => {
                     }}>
                         Закрыть
                     </Button>
-                    <Button variant="contained" disabled={!formData.name || !isPlateValid(formData.licensePlate)} onClick={handleUpdateUser}>
-                        Сохранить изменения
+                    <Button variant="contained" disabled={!formData.name || !isPlateValid(formData.licensePlate) || actionLoading} onClick={handleUpdateUser}>
+                        {actionLoading ? <CircularProgress size={24} /> : "Сохранить"}
                     </Button>
                 </DialogActions>
             </Dialog>

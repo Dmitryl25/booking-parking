@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Container, Typography, Button, Card, CardActions, CardContent, Grid, IconButton, Box, TextField, Dialog, DialogContent, DialogTitle, DialogActions, Paper, CircularProgress } from '@mui/material';
+import { Container, Typography, Button, Card, CardActions, CardContent, Grid, IconButton, Box, TextField, Dialog, DialogContent, DialogTitle, DialogActions, Paper, CircularProgress, Alert } from '@mui/material';
 import { useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -13,6 +13,8 @@ const AdminOffices = () => {
     const navigate = useNavigate();
     const [offices, setOffices] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     // Состояния для добавления офиса
     const [open, setOpen] = useState(false);
@@ -32,15 +34,44 @@ const AdminOffices = () => {
         onConfirm: null
     });
 
+    // Обработчик ошибок
+    const handleApiError = (err, defaultMsg) => {
+        if (err.response) {
+            const status = err.response.status;
+            switch (status) {
+                case 401:
+                    setError("Ваша сессия истекла. Пожалуйста, войдите в систему заново.");
+                    break;
+                case 403:
+                    setError("У вас недостаточно прав для выполнения этого действия.");
+                    break;
+                case 404:
+                    setError("Офис не найден. Возможно, он уже удален.");
+                    break;
+                case 409:
+                    setError("Офис с таким адресом уже существует.");
+                    break;
+                case 500:
+                    setError("Ошибка сервера (500). Попробуйте обновить страницу позже.");
+                    break;
+                default:
+                    setError(`${defaultMsg} (Код: ${status})`);
+            }
+        } else {
+            setError("Не удалось связаться с сервером. Проверьте интернет-соединение.");
+        }
+    };
+
     // Загрузка офисов
     const fetchOffices = useCallback(async () => {
         setLoading(true);
+        setError(null);
         try {
             const response = await commonApi.officesGet();
             const sorted = (response.data || []).sort((a, b) => a.id - b.id);
             setOffices(sorted);
-        } catch {
-            console.error('Ошибка при загрузке офисов');
+        } catch (err) {
+            handleApiError(err, "Не удалось загрузить список офисов");
         } finally {
             setLoading(false);
         }
@@ -54,6 +85,8 @@ const AdminOffices = () => {
 
     // Добавление офиса
     const handleAddOffice = async () => {
+        setActionLoading(true);
+        setError(null);
         try {
             const response = await adminApi.adminOfficesPost({ address: newOfficeAddress});
             const createdOffice = response.data;
@@ -65,7 +98,7 @@ const AdminOffices = () => {
                 'Новый офис успешно добавлен. Сейчас вы будете перенаправлены к настройке категорий.', 
                 'success',
                 () => {
-                    navigate(`/admin/offices/${createdOffice}/categories`, {
+                    navigate(`/admin/offices/${createdOffice.id}/categories`, {
                         state: { officeAddress: createdOffice.address }
                     })
                 }
@@ -73,29 +106,32 @@ const AdminOffices = () => {
 
             fetchOffices();
         } catch (err) {
-            if (err.response?.status === 409) {
-                showModal('Ошибка', 'Офис с таким адресом уже существует', 'error');
-            } else {
-                alert("Ошибка при создании офиса");
-            }
+            handleApiError(err, "Ошибка при создании офиса");
+        } finally {
+            setActionLoading(false);
         }
     }
 
     // Редактирование офиса
     const handleOpenEdit = (office) => {
+        setError(null);
         setSelectedOfficeId(office.id);
         setEditAddress(office.address);
         setEditOpen(true);
     }
 
     const handleUpdateOffice = async () => {
+        setActionLoading(true);
+        setError(null);
         try {
             await adminApi.adminOfficesIdPut(selectedOfficeId, { address: editAddress });
             setEditOpen(false);
             fetchOffices();
             showModal('Обновлено', 'Адрес офиса успешно изменен', 'success');
-        } catch {
-            alert("Ошибка при обновлении адреса");
+        } catch (err) {
+            handleApiError(err, "Ошибка при обновлении");
+        } finally {
+            setActionLoading(false);
         }
     }
 
@@ -110,12 +146,13 @@ const AdminOffices = () => {
     }
 
     const confirmDelete = async (id) => {
+        setError(null);
         try {
             await adminApi.adminOfficesIdDelete(id);
             fetchOffices();
             showModal('Удалено', 'Офис полностью удален из системы', 'success');
-        } catch {
-            console.error('Ошибка при удалении офиса');
+        } catch (err) {
+            handleApiError(err, "Ошибка при удалении");
         }
     }
 
@@ -133,6 +170,10 @@ const AdminOffices = () => {
                     Добавить офис
                 </Button>
             </Box>
+
+            {error && !open && !editOpen && (
+                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>
+            )}
 
             {loading ? (
                 <Box display="flex" justifyContent="center" my={5}><CircularProgress /></Box>
@@ -233,9 +274,10 @@ const AdminOffices = () => {
             )}
 
             {/* Модальное окно добавления */}
-            <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
+            <Dialog open={open} onClose={() => !actionLoading && setOpen(false)} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Новый офис</DialogTitle>
                 <DialogContent>
+                    {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
                     <TextField
                         autoFocus
                         margin="dense"
@@ -244,21 +286,23 @@ const AdminOffices = () => {
                         variant="outlined"
                         value={newOfficeAddress}
                         onChange={(e) => setNewOfficeAddress(e.target.value)}
+                        disabled={actionLoading}
                         sx={{ mt: 1 }}
                     />
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setOpen(false)}>Отмена</Button>
-                    <Button onClick={handleAddOffice} variant="contained" disabled={!newOfficeAddress.trim()}>
-                        Создать
+                    <Button onClick={() => setOpen(false)} disabled={actionLoading}>Отмена</Button>
+                    <Button onClick={handleAddOffice} variant="contained" disabled={!newOfficeAddress.trim() || actionLoading}>
+                        {actionLoading ? <CircularProgress size={24} /> : "Создать"}
                     </Button>
                 </DialogActions>
             </Dialog>
 
             {/* Модальное окно редактирования */}
-            <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="xs">
+            <Dialog open={editOpen} onClose={() => !actionLoading && setEditOpen(false)} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Редактировать адрес</DialogTitle>
                 <DialogContent>
+                    {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
                     <TextField
                         autoFocus
                         margin="dense"
@@ -267,17 +311,18 @@ const AdminOffices = () => {
                         variant="outlined"
                         value={editAddress}
                         onChange={(e) => setEditAddress(e.target.value)}
+                        disabled={actionLoading}
                         sx={{ mt: 1 }}
                     />
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setEditOpen(false)}>Отмена</Button>
+                    <Button onClick={() => setEditOpen(false)} disabled={actionLoading}>Отмена</Button>
                     <Button 
                         onClick={handleUpdateOffice} 
                         variant="contained"
-                        disabled={!editAddress || editAddress.trim() === ''}
+                        disabled={!editAddress.trim() || actionLoading}
                     >
-                        Сохранить
+                        {actionLoading ? <CircularProgress size={24} /> : "Сохранить"}
                     </Button>
                 </DialogActions>
             </Dialog>

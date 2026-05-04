@@ -11,6 +11,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 const UserBookings = () => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
     const [error, setError] = useState(null);
 
     // Состояние для модального окна подтверждения
@@ -22,18 +23,53 @@ const UserBookings = () => {
         bookingId: null
     });
 
+    const closeModal = () => {
+        if (!modal.loading) {
+            setModal(prev => ({ ...prev, open: false }));
+        }
+    }
+
+    // Обработчик ошибок
+    const handleApiError = (err, defaultMsg) => {
+        if (err.response) {
+            const status = err.response.status;
+            switch (status) {
+                case 401:
+                    setError("Ваша сессия истекла. Пожалуйста, войдите в систему заново.");
+                    break;
+                case 403:
+                    setError("У вас недостаточно прав для выполнения этого действия.");
+                    break;
+                case 404:
+                    setError("Бронирование не найдено.");
+                    break;
+                case 409:
+                    setError("Место с таким номером уже существует в этой категории.");
+                    break;
+                case 500:
+                    setError("Ошибка сервера (500). Попробуйте обновить страницу позже.");
+                    break;
+                default:
+                    setError(`${defaultMsg} (Код: ${status})`);
+            }
+        } else {
+            setError("Не удалось связаться с сервером. Проверьте интернет-соединение.");
+        }
+    };
+
     // Получение списка бронирований пользователя
     useEffect(() => {
-        const fetchBookings = async () =>{
+        const fetchBookings = async () => {
             try {
                 setLoading(true);
+                setError(null);
                 const response = await userApi.bookingsMyGet();
                 const sorted = (response.data || []).sort((a, b) =>
                     new Date(a.startTime) - new Date(b.startTime)
                 )
                 setBookings(sorted);
-            } catch {
-                console.error("Не удалось загрузить список бронирований")
+            } catch (err) {
+                handleApiError(err, "Не удалось загрузить ваши бронирования");
             } finally {
                 setLoading(false);
             }
@@ -51,6 +87,7 @@ const UserBookings = () => {
 
     // Открытие модального окна подтверждения при отмене брони
     const handleOpenCancelModal = (booking) => {
+        setError(null);
         setModal({
             open: true,
             title: 'Отмена бронирования',
@@ -62,6 +99,8 @@ const UserBookings = () => {
 
     // Отмена бронирования после подтверждения
     const confirmCancel = async () => {
+        setActionLoading(true);
+        setError(null);
         try {
             await userApi.bookingsIdDelete(modal.bookingId);
             setBookings(bookings.filter(b => b.id !== modal.bookingId));
@@ -73,12 +112,13 @@ const UserBookings = () => {
                 type: 'success',
                 bookingId: null
             });
-        } catch {
-            setError("Не удалось отменить бронирование");
+        } catch (err) {
+            handleApiError(err, "Не удалось отменить бронирование");
+            setModal(prev => ({ ...prev, open: false }));
+        } finally {
+            setActionLoading(false);
         }
     }
-
-    const closeModal = () => setModal(prev => ({ ...prev, open: false }));
 
     if (loading) {
         return (
@@ -99,7 +139,9 @@ const UserBookings = () => {
                 </Button>
             </Stack>
 
-            {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+            {error && (
+                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>
+            )}
 
             {bookings.length > 0 ? (
                 <Stack spacing={2}>
@@ -124,7 +166,7 @@ const UserBookings = () => {
                                         </Typography>
                                     </Box>
                                     <Typography variant="caption" sx={{ bgcolor: '#f0f2f5', px: 1.5, py: 0.5, borderRadius: 1, fontWeight: 600 }}>
-                                        {booking.category.toUpperCase()}
+                                        {(booking.category || '').toUpperCase()}
                                     </Typography>
                                 </Box>
 
@@ -156,8 +198,9 @@ const UserBookings = () => {
                                     <Button 
                                         size="small" 
                                         color="error" 
-                                        startIcon={<CloseIcon />}
+                                        startIcon={actionLoading && modal.bookingId === booking.id ? <CircularProgress size={14} color="inherit" /> : <CloseIcon />}
                                         onClick={() => handleOpenCancelModal(booking)}
+                                        disabled={actionLoading}
                                         sx={{ fontWeight: 600, textTransform: 'none' }}
                                     >
                                     Отменить бронь
@@ -168,24 +211,26 @@ const UserBookings = () => {
                     ))}
                 </Stack>
             ) : (
-                <Paper 
-                    sx={{ 
-                        p: 5, 
-                        textAlign: 'center', 
-                        borderRadius: 4, 
-                        bgcolor: '#f8f9fa', 
-                        border: '1px dashed #e0e0e0',
-                        mt: 4,
-                        boxShadow: 'none'
-                    }}
-                >
-                    <Typography variant="h6" fontWeight="600" color="text.secondary" gutterBottom>
-                        Активных бронирований пока нет
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400, mx: 'auto' }}>
-                        Здесь появится список ваших будущих парковочных мест.
-                    </Typography>
-                </Paper>
+                !error && (
+                    <Paper 
+                        sx={{ 
+                            p: 5, 
+                            textAlign: 'center', 
+                            borderRadius: 4, 
+                            bgcolor: '#f8f9fa', 
+                            border: '1px dashed #e0e0e0',
+                            mt: 4,
+                            boxShadow: 'none'
+                        }}
+                    >
+                        <Typography variant="h6" fontWeight="600" color="text.secondary" gutterBottom>
+                            Активных бронирований пока нет
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400, mx: 'auto' }}>
+                            Здесь появится список ваших будущих парковочных мест.
+                        </Typography>
+                    </Paper>
+                )
             )}
 
             {/* Модальное окно */}
@@ -198,6 +243,7 @@ const UserBookings = () => {
                 type={modal.type}
                 confirmText="Да, отменить"
                 cancelText="Назад"
+                disabled={actionLoading}
             />
         </Container>
     )

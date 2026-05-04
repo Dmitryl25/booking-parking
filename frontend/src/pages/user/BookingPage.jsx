@@ -76,14 +76,42 @@ const BookingPage = () => {
         type: 'success'
     });
 
+    // Обработчик ошибок
+    const handleApiError = (err, defaultMsg) => {
+        if (err.response) {
+            const status = err.response.status;
+            switch (status) {
+                case 401: 
+                    setError("Ваша сессия истекла. Пожалуйста, войдите в систему заново."); 
+                    break;
+                case 403: 
+                    setError("У вас недостаточно прав для выполнения этого действия."); 
+                    break;
+                case 404: 
+                    setError("Ресурс не найден (404)."); 
+                    break;
+                case 409: 
+                    setError("Это место уже занято на выбранное время. Пожалуйста, выберите другое."); 
+                    break;
+                case 500: 
+                    setError("Ошибка сервера (500). Попробуйте обновить страницу позже."); 
+                    break;
+                default: 
+                    setError(`${defaultMsg} (Код: ${status})`);
+            }
+        } else {
+            setError("Не удалось связаться с сервером. Проверьте интернет-соединение.");
+        }
+    };
+
     // Загрузка офисов
     useEffect(() => {
         const fetchOffices = async () => {
             try {
                 const response = await commonApi.officesGet();
                 setOffices(response.data);
-            } catch {
-                setError("Не удалось загрузить список офисов");
+            } catch (err) {
+                handleApiError(err, "Не удалось загрузить список офисов");
             } finally {
                 setInitialLoading(false);
             }
@@ -112,8 +140,8 @@ const BookingPage = () => {
                 } else {
                     setFilters(prev => ({ ...prev, categoryId: '' }));
                 }
-            } catch {
-                setError("Не удалось загрузить список категорий");
+            } catch (err) {
+                handleApiError(err, "Не удалось загрузить категории");
             }
         }
 
@@ -174,8 +202,8 @@ const BookingPage = () => {
             });
             setSpots(response.data);
             setSearchDone(true);
-        } catch {
-            setError("Ошибка при поиске мест. Попробуйте снова.");
+        } catch (err) {
+            handleApiError(err, "Ошибка при поиске мест");
         } finally {
             setLoading(false);
         }
@@ -183,6 +211,8 @@ const BookingPage = () => {
 
     // Бронирование
     const handleBooking = async () => {
+        setError(null);
+        setLoading(true);
         try {
             await userApi.bookingsPost({
                 officeId: filters.officeId,
@@ -198,13 +228,19 @@ const BookingPage = () => {
                 message: `Место ${selectedSpot} забронировано на ${new Date(filters.date).toLocaleDateString()}.`,
                 type: 'success'
             });
-        } catch {
-            setError("Не удалось забронировать место. Возможно, оно уже занято.")
+        } catch (err) {
+            handleApiError(err, "Не удалось забронировать место");
+        } finally {
+            setLoading(false);
         }
     }
 
     // Заполненость формы
     const isFormValid = filters.officeId && filters.categoryId && filters.categoryId !== 'none';
+
+    if (initialLoading) return (
+        <Box display="flex" justifyContent="center" mt={10}><CircularProgress /></Box>
+    );
 
     return (
         <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
@@ -217,76 +253,78 @@ const BookingPage = () => {
             </Button>
             <Typography variant="h5" fontWeight="700" mb={4}>Забронировать место</Typography>
 
-            {initialLoading ? <CircularProgress /> : (
-                <Card variant="outlined" sx={{ p: 3, borderRadius: 3, mb: 4 }}>
-                    <Grid container spacing={3}>
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <TextField
-                                select fullWidth label="Офис" id="officeId" name="officeId"
-                                value={filters.officeId} onChange={handleChange}
-                            >
-                                {offices.map(o => <MenuItem key={o.id} value={o.id}>{o.address}</MenuItem>)}
-                            </TextField>
-                        </Grid>
-
-                        <Grid size={{ xs: 12, md: 6 }}>
-                            <TextField
-                                select fullWidth label="Категория" id="categoryId" name="categoryId"
-                                value={filters.categoryId} onChange={handleChange}
-                                disabled={!filters.officeId || filters.categoryId === 'none'}
-                            >
-                                {categories.length > 0 && categories.map((c) => (
-                                    <MenuItem key={c.id} value={c.id}>
-                                        {c.name}
-                                    </MenuItem>
-                                ))}
-
-                                {filters.categoryId === 'none' && (
-                                    <MenuItem value="none">
-                                        Нет доступных категорий
-                                    </MenuItem>
-                                )}
-                            </TextField>
-                        </Grid>
-
-                        <Grid size={{ xs: 12, md: 4 }}>
-                            <TextField
-                                fullWidth type="date" label="Дата" id="date" name="date"
-                                value={filters.date} onChange={handleChange}
-                                InputLabelProps={{ shrink: true }}
-                                inputProps={{ min: minDateStr, max: maxDateStr }}
-                            />
-                        </Grid>
-
-                        <Grid size={{ xs: 6, md: 4 }}>
-                            <TextField
-                                fullWidth type="time" label="Начало" id="startTime" name="startTime"
-                                value={filters.startTime} onChange={handleChange}
-                                InputLabelProps={{ shrink: true }}
-                            />
-                        </Grid>
-
-                        <Grid size={{ xs: 6, md: 4 }}>
-                            <TextField
-                                fullWidth type="time" label="Конец" id="endTime" name="endTime"
-                                value={filters.endTime} onChange={handleChange}
-                                InputLabelProps={{ shrink: true }}
-                            />
-                        </Grid>
-
-                        <Grid size={{ xs: 12 }}>
-                            <Button
-                                fullWidth variant="contained" size="large"
-                                onClick={handleSearch} disabled={loading || !isFormValid}
-                            >
-                                {loading ? <CircularProgress size={24} /> : "Найти свободные места"}
-                            </Button>
-                        </Grid>
-                    </Grid>
-                </Card>
+            {error && (
+                <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 3, borderRadius: 2 }}>
+                    {error}
+                </Alert>
             )}
 
-            {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
+            <Card variant="outlined" sx={{ p: 3, borderRadius: 3, mb: 4 }}>
+                <Grid container spacing={3}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                            select fullWidth label="Офис" id="officeId" name="officeId"
+                            value={filters.officeId} onChange={handleChange}
+                        >
+                            {offices.map(o => <MenuItem key={o.id} value={o.id}>{o.address}</MenuItem>)}
+                        </TextField>
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                            select fullWidth label="Категория" id="categoryId" name="categoryId"
+                            value={filters.categoryId} onChange={handleChange}
+                            disabled={!filters.officeId || filters.categoryId === 'none'}
+                        >
+                            {categories.length > 0 && categories.map((c) => (
+                                <MenuItem key={c.id} value={c.id}>
+                                    {c.name}
+                                </MenuItem>
+                            ))}
+
+                            {filters.categoryId === 'none' && (
+                                <MenuItem value="none">
+                                    Нет доступных категорий
+                                </MenuItem>
+                            )}
+                        </TextField>
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                        <TextField
+                            fullWidth type="date" label="Дата" id="date" name="date"
+                            value={filters.date} onChange={handleChange}
+                            InputLabelProps={{ shrink: true }}
+                            inputProps={{ min: minDateStr, max: maxDateStr }}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 6, md: 4 }}>
+                        <TextField
+                            fullWidth type="time" label="Начало" id="startTime" name="startTime"
+                            value={filters.startTime} onChange={handleChange}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 6, md: 4 }}>
+                        <TextField
+                            fullWidth type="time" label="Конец" id="endTime" name="endTime"
+                            value={filters.endTime} onChange={handleChange}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12 }}>
+                        <Button
+                            fullWidth variant="contained" size="large"
+                            onClick={handleSearch} disabled={loading || !isFormValid}
+                        >
+                            {loading && !searchDone ? <CircularProgress size={24} /> : "Найти свободные места"}
+                        </Button>
+                    </Grid>
+                </Grid>
+            </Card>
 
             {searchDone && (
                 <Box>
@@ -305,7 +343,7 @@ const BookingPage = () => {
                                                 bgcolor: selectedSpot === spot.number ? '#e3f2fd' : 'inherit'
                                             }}
                                         >
-                                            <CardActionArea onClick={() => setSelectedSpot(spot.number)} sx={{ p: 2, textAlign: 'center' }}>
+                                            <CardActionArea onClick={() => setSelectedSpot(spot.number)} sx={{ p: 2, textAlign: 'center' }} disabled={loading}>
                                                 <DirectionsCarIcon color={selectedSpot === spot.number ? "primary" : "action"} />
                                                 <Typography fontWeight="700">{spot.number}</Typography>
                                             </CardActionArea>
@@ -350,6 +388,7 @@ const BookingPage = () => {
                                             size="large" 
                                             fullWidth={{ xs: true, sm: false }}
                                             onClick={handleBooking}
+                                            disabled={loading}
                                             sx={{ 
                                                 px: 6, 
                                                 py: 1.5, 
@@ -360,7 +399,7 @@ const BookingPage = () => {
                                                 boxShadow: '0 4px 14px 0 rgba(25, 118, 210, 0.39)'
                                             }}
                                         >
-                                            Забронировать
+                                            {loading ? <CircularProgress size={24} color="inherit" /> : "Забронировать"}
                                         </Button>
                                     </Stack>
                                 </Box>

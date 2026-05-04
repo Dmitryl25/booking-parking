@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Container, Typography, Button, Grid, Card, CardContent, Box, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Divider, MenuItem, Stack, CircularProgress, Paper } from '@mui/material';
+import { Container, Typography, Button, Grid, Card, CardContent, Box, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Divider, MenuItem, Stack, CircularProgress, Paper, Alert } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -19,6 +19,8 @@ const AdminSpots = () => {
     const [officeAddress, setOfficeAddress] = useState(location.state?.officeAddress || '');
     const [groupedSpots, setGroupedSpots] = useState({}); 
     const [loading, setLoading] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     // Состояния для добавления парковочного места
     const [addOpen, setAddOpen] = useState(false);
@@ -53,9 +55,41 @@ const AdminSpots = () => {
         setModal({ open: true, title, message, type, onConfirm });
     };
 
+    // Обработчик ошибок
+    const handleApiError = (err, defaultMsg) => {
+        if (err.response) {
+            const status = err.response.status;
+            switch (status) {
+                case 400:
+                    setError("Ошибка в данных. Проверьте формат номера или время.");
+                    break;
+                case 401:
+                    setError("Ваша сессия истекла. Пожалуйста, войдите в систему заново.");
+                    break;
+                case 403:
+                    setError("У вас недостаточно прав для выполнения этого действия.");
+                    break;
+                case 404:
+                    setError("Место или категория не найдены.");
+                    break;
+                case 409:
+                    setError("Место с таким номером уже существует в этой категории.");
+                    break;
+                case 500:
+                    setError("Ошибка сервера (500). Попробуйте обновить страницу позже.");
+                    break;
+                default:
+                    setError(`${defaultMsg} (Код: ${status})`);
+            }
+        } else {
+            setError("Не удалось связаться с сервером. Проверьте интернет-соединение.");
+        }
+    };
+
     // Получение парковочных мест
     const fetchSpots = useCallback(async () => {
         setLoading(true);
+        setError(null);
         try {
             // Получаем адрес офиса, если его нет в state
             if (!officeAddress) {
@@ -88,7 +122,7 @@ const AdminSpots = () => {
 
             setGroupedSpots(groups);
         } catch (err) {
-            console.error("Ошибка при загрузке мест:", err);
+            handleApiError(err, "Не удалось загрузить данные офиса");
         } finally {
             setLoading(false);
         }
@@ -98,6 +132,8 @@ const AdminSpots = () => {
 
     // Добавление парковочного места
     const handleAddSpot = async () => {
+        setActionLoading(true);
+        setError(null);
         try {
             await adminApi.adminParkingSpotsPost({
                 number: newData.number,
@@ -108,8 +144,10 @@ const AdminSpots = () => {
             setNewData({ number: '', categoryId: '' });
             fetchSpots();
             showModal('Успешно', `Место ${newData.number} добавлено`, 'success');
-        } catch {
-            alert("Ошибка при создании места. Возможно, такой номер уже есть.");
+        } catch (err) {
+            handleApiError(err, "Ошибка при создании места");
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -124,6 +162,7 @@ const AdminSpots = () => {
     };
 
     const confirmDelete = async (spot) => {
+        setActionLoading(true);
         const category = allCategories.find(c => c.name === spot.category);
 
         try {
@@ -134,8 +173,10 @@ const AdminSpots = () => {
             });
             fetchSpots();
             showModal('Удалено', 'Парковочное место удалено', 'success');
-        } catch {
-            alert("Ошибка при удалении места");
+        } catch (err) {
+            handleApiError(err, "Не удалось удалить место");
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -158,6 +199,8 @@ const AdminSpots = () => {
             return;
         }
 
+        setActionLoading(true);
+        setError(null);
         const category = allCategories.find(c => c.name === selectedSpot.category);
 
         try {
@@ -171,8 +214,10 @@ const AdminSpots = () => {
             setBlockOpen(false);
             fetchSpots();
             showModal('Заблокировано', `Место ${selectedSpot.number} недоступно для бронирования`, 'success');
-        } catch {
-            alert("Ошибка при блокировке. Возможно, данные некорректны.");
+        } catch (err) {
+            handleApiError(err, "Ошибка при блокировке");
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -181,6 +226,7 @@ const AdminSpots = () => {
         setSelectedSpot(spot);
         setInfoLoading(true);
         setInfoOpen(true);
+        setError(null);
 
         const category = allCategories.find(c => c.name === spot.category);
         
@@ -210,6 +256,8 @@ const AdminSpots = () => {
     };
 
     const handleUnblock = async () => {
+        setActionLoading(true);
+        setError(null);
         const category = allCategories.find(c => c.name === selectedSpot.category);
 
         try {
@@ -221,8 +269,10 @@ const AdminSpots = () => {
             setInfoOpen(false);
             fetchSpots();
             showModal('Разблокировано', 'Место снова доступно', 'success');
-        } catch {
-            alert("Ошибка при разблокировке");
+        } catch (err) {
+            handleApiError(err, "Не удалось разблокировать");
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -243,12 +293,15 @@ const AdminSpots = () => {
                 <Button 
                     variant="contained" 
                     startIcon={<AddIcon />}
-                    onClick={() => setAddOpen(true)}
+                    onClick={() => { setError(null); setAddOpen(true); }}
                 >
                     Добавить место
                 </Button>
             </Box>
 
+            {error && !addOpen && !blockOpen && !infoOpen && (
+                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>
+            )}
 
             {loading ? (
                 <Box display="flex" justifyContent="center" my={5}><CircularProgress /></Box>
@@ -289,7 +342,7 @@ const AdminSpots = () => {
             ) : (
                 allCategories.map((cat) => {
                     const spots = groupedSpots[cat.name];
-                    const isEmptyCategory = spots.length === 1 && spots[0].number === "";
+                    const isEmptyCategory = spots.length === 0 || (spots.length === 1 && spots[0].number === "");
 
                     return (
                         <Box key={cat.id} sx={{ mb: 5 }}>
@@ -307,8 +360,10 @@ const AdminSpots = () => {
                                     {spots.map((spot) => (
                                         <Grid size={{ xs: 4, sm: 2, md: 1.2, lg: 1 }} key={spot.number}>
                                             <Card variant="outlined" sx={{
-                                                borderRadius: 3, 
+                                                borderRadius: 3,
                                                 boxShadow: 'none',
+                                                transition: '0.3s',
+                                                '&:hover': { boxShadow: '0 8px 24px rgba(0,0,0,0.12)', transform: 'translateY(-2px)' },
                                                 border: spot.available === false ? '1px solid #ef5350' : '1px solid #eee',
                                                 background: spot.available === false 
                                                     ? 'linear-gradient(45deg, #fffcfc 25%, #fff5f5 25%, #fff5f5 50%, #fffcfc 50%, #fffcfc 75%, #fff5f5 75%, #fff5f5 100%)'
@@ -332,12 +387,12 @@ const AdminSpots = () => {
                                                             <InfoIcon fontSize="small" />
                                                         </IconButton>
                                                     ) : (
-                                                        <IconButton color="primary" onClick={() => { setSelectedSpot(spot); setBlockOpen(true); }} title="Заблокировать">
+                                                        <IconButton color="primary" onClick={() => { setError(null); setSelectedSpot(spot); setBlockOpen(true); }} title="Заблокировать">
                                                             <BlockIcon fontSize="small" />
                                                         </IconButton>
                                                     )}
                                                     
-                                                    <IconButton color="error" onClick={() => handleDeleteClick(spot)} title="Удалить место">
+                                                    <IconButton color="error" onClick={() => handleDeleteClick(spot)} title="Удалить место" disabled={actionLoading}>
                                                         <DeleteIcon fontSize="small" />
                                                     </IconButton>
                                                 </Box>
@@ -352,15 +407,17 @@ const AdminSpots = () => {
             )}
 
             {/* Модальное окно добавления места */}
-            <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="xs">
+            <Dialog open={addOpen} onClose={() => !actionLoading && setAddOpen(false)} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Новое парковочное место</DialogTitle>
                 <DialogContent>
+                    {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
                     <Stack spacing={3} sx={{ mt: 1 }}>
                         <TextField
                             select
                             label="Категория"
                             fullWidth
                             value={newData.categoryId}
+                            disabled={actionLoading}
                             onChange={(e) => setNewData({ ...newData, categoryId: e.target.value })}
                         >
                             {allCategories.map((cat) => (
@@ -375,22 +432,24 @@ const AdminSpots = () => {
                             fullWidth
                             placeholder="Например, A1"
                             value={newData.number}
+                            disabled={actionLoading}
                             onChange={(e) => setNewData({ ...newData, number: e.target.value })}
                         />
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setAddOpen(false)}>Отмена</Button>
-                    <Button variant="contained" disabled={!newData.number.trim() || !newData.categoryId} onClick={handleAddSpot}>
-                        Создать
+                    <Button onClick={() => setAddOpen(false)} disabled={actionLoading}>Отмена</Button>
+                    <Button variant="contained" disabled={!newData.number.trim() || !newData.categoryId || actionLoading} onClick={handleAddSpot}>
+                        {actionLoading ? <CircularProgress size={24} /> : "Создать"}
                     </Button>
                 </DialogActions>
             </Dialog>
 
             {/* Модальное окно блокировки */}
-            <Dialog open={blockOpen} onClose={() => setBlockOpen(false)} fullWidth maxWidth="xs">
+            <Dialog open={blockOpen} onClose={() => !actionLoading && setBlockOpen(false)} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Блокировка места {selectedSpot?.number}</DialogTitle>
                 <DialogContent>
+                    {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
                     <Stack spacing={3} sx={{ mt: 1 }}>
                         <TextField
                             label="Дата блокировки"
@@ -424,9 +483,9 @@ const AdminSpots = () => {
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setBlockOpen(false)}>Отмена</Button>
-                    <Button variant="contained" disabled={!blockData.date || !blockData.startTime || !blockData.endTime} color="error" onClick={handleForceBlockClick}>
-                        Заблокировать
+                    <Button onClick={() => setBlockOpen(false)} disabled={actionLoading}>Отмена</Button>
+                    <Button variant="contained" disabled={!blockData.date || !blockData.startTime || !blockData.endTime || actionLoading} color="error" onClick={handleForceBlockClick}>
+                        {actionLoading ? <CircularProgress size={24} /> : "Заблокировать"}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -435,6 +494,7 @@ const AdminSpots = () => {
             <Dialog open={infoOpen} onClose={() => setInfoOpen(false)} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Блокировка места {selectedSpot?.number}</DialogTitle>
                 <DialogContent>
+                    {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
                     {infoLoading ? (
                         <Box display="flex" justifyContent="center" p={3}><CircularProgress size={24} /></Box>
                     ) : blockingInfo ? (
@@ -469,10 +529,11 @@ const AdminSpots = () => {
                 </DialogContent>
                 <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
                     <Button 
-                        color="error" 
+                        color="error"
                         variant="contained"
-                        startIcon={<LockOpenIcon />} 
+                        startIcon={actionLoading ? <CircularProgress size={16} color="inherit" /> : <LockOpenIcon />}
                         onClick={handleUnblockClick}
+                        disabled={actionLoading}
                     >
                         Разблокировать
                     </Button>
