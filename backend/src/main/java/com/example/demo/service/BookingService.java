@@ -254,24 +254,18 @@ public class BookingService {
         }
         Category cat = catRepository.getReferenceById(spotRequest.getCategoryId());
         Integer count = cat.getSpot_count();
-        Category category = catRepository.getReferenceById(spotRequest.getCategoryId());
+        List<String> bookedSpots = spotRepository.ListSpotsBookedBetween(cat.getId(), office_id, spotRequest.getStartTime(), spotRequest.getEndTime());
         List<SpotResponse> spotResponses = new ArrayList<>();
         String[] sp = {};
-        if (!category.getSpotsName().isEmpty()) {
-            sp = category.getSpotsName().split(" ");
+        if (!cat.getSpotsName().isEmpty()) {
+            sp = cat.getSpotsName().split(" ");
         }
         for (int i = 1; i < count + 1; i++) {
             String spotNum = Integer.toString(i);
             if (sp.length == count){
                 spotNum = sp[i - 1];
             }
-            if (!spotRepository.existsSpotByParameters(spotRequest.getCategoryId(), spotRequest.getOfficeId(), spotNum, ZonedDateTime.now())){
-                SpotResponse spot = new SpotResponse();
-                spot.setNumber(spotNum);
-                spotResponses.add(spot);
-
-            }
-            else if (!spotRepository.isSpotBookedBetween(spotRequest.getCategoryId(), spotRequest.getOfficeId(), spotNum, spotRequest.getStartTime(), spotRequest.getEndTime())) {
+            if (!bookedSpots.contains(spotNum) ){
                 SpotResponse spot = new SpotResponse();
                 spot.setNumber(spotNum);
                 spotResponses.add(spot);

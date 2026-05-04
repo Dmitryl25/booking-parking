@@ -31,10 +31,24 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("categoryId") Long catId,
             @Param("officeId") Long officeId,
             @Param("spot_number") String spot_number,
-
             @Param("requestedStartTime") ZonedDateTime requestedStartTime,
             @Param("requestedEndTime") ZonedDateTime requestedEndTime
     );
+
+    @Transactional(readOnly = true)
+    @Query("SELECT s.spot_number" +
+            "FROM Spot s " +
+            "WHERE s.category.id = :categoryId " +
+            "AND s.office.id = :officeId " +
+            "AND s.start < :requestedEndTime " +
+            "AND s.finish > :requestedStartTime")
+    List<String> ListSpotsBookedBetween(
+            @Param("categoryId") Long catId,
+            @Param("officeId") Long officeId,
+            @Param("requestedStartTime") ZonedDateTime requestedStartTime,
+            @Param("requestedEndTime") ZonedDateTime requestedEndTime
+    );
+
 
 
     @Modifying
@@ -89,6 +103,17 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("categoryId") Long catId,
             @Param("officeId") Long officeId,
             @Param("spot_number") String spot_number,
+            @Param("data") ZonedDateTime time
+    );
+
+    @Transactional(readOnly = true)
+    @Query("SELECT s.spot_number FROM Spot s " +
+            "WHERE s.category.id = :categoryId " +
+            "AND s.office.id = :officeId " +
+            "AND s.finish > :data")
+    List<String> getOccupiedSpots(
+            @Param("categoryId") Long catId,
+            @Param("officeId") Long officeId,
             @Param("data") ZonedDateTime time
     );
 

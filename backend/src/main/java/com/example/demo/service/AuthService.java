@@ -10,6 +10,7 @@ import com.example.demo.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,20 +58,25 @@ public class AuthService {
 
 
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+        try{
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+            String email = authentication.getName();
+            String role = authentication.getAuthorities().iterator().next().getAuthority();
 
-        String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole());
-        String refreshToken = jwtUtil.generateRefreshToken(user.getEmail(), user.getRole());
+            String accessToken = jwtUtil.generateAccessToken(email, role);
+            String refreshToken = jwtUtil.generateRefreshToken(email, role);
 
-        return new AuthResponse(accessToken, refreshToken);
+            return new AuthResponse(accessToken, refreshToken);
+        }
+        catch (Exception e){
+            throw new RuntimeException("Invalid credentials");
+        }
     }
 
 
