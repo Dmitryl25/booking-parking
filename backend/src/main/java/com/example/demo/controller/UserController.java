@@ -38,10 +38,9 @@ public class UserController {
 
     @PostMapping("bookings")
     public ResponseEntity<?> Booking(@RequestBody BookingCreateRequest spotRequest, @AuthenticationPrincipal UserDetails userDetails) {
-        Spot spot;
 
         try{
-            spot = bookingService.createSpot(spotRequest, userDetails.getUsername());
+            bookingService.createSpot(spotRequest, userDetails.getUsername());
         }
         catch (IllegalArgumentException e) {
 

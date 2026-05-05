@@ -52,8 +52,17 @@ public class BookingService {
         return office;
     }
 
-    public List<Office> getAllOffice() {
-        return officeRepository.findAll();
+    public List<FullOfficeView> getAllOffice() {
+        List<FullOfficeView> ans = new ArrayList<>();
+        List<Office> officeList = officeRepository.findAll();
+        for (Office office : officeList) {
+            FullOfficeView view = new FullOfficeView();
+            view.setAddress(office.getAddress());
+            view.setId(office.getId());
+            ans.add(view);
+        }
+
+        return ans;
     }
 
     public void updateOffice(OfficeView office_view, Long id) {
@@ -127,9 +136,17 @@ public class BookingService {
         catRepository.save(category);
     }
 
-    public List<Category> getAllCategoryOffice(Long office_id) {
+    public List<GetCategory> getAllCategoryOffice(Long office_id) {
         if  (officeRepository.existsById(office_id)) {
-            return catRepository.findByOfficeId(office_id);
+            List<GetCategory> ans = new ArrayList<>();
+            List<Category> category = catRepository.findByOfficeId(office_id);
+            for(Category c : category){
+                GetCategory getCategory = new GetCategory();
+                getCategory.setId(c.getId());
+                getCategory.setName(c.getName());
+                ans.add(getCategory);
+            }
+            return ans;
         }
         else{
             throw new RuntimeException("Office not found");
@@ -140,7 +157,7 @@ public class BookingService {
     public void addSpot(AddSpot addSpot){
         if (officeRepository.existsById(addSpot.getOfficeId())) {
             if (catRepository.existsById(addSpot.getCategoryId())) {
-                List<Category> categories = getAllCategoryOffice(addSpot.getOfficeId());
+                List<Category> categories = catRepository.findByOfficeId(addSpot.getOfficeId());
                 Category category = catRepository.getReferenceById(addSpot.getCategoryId());
                 if (categories.contains(category)) {
                     List<String> sp = Arrays.asList(category.getSpotsName().split(" "));
@@ -174,7 +191,7 @@ public class BookingService {
     public void delete_Spot(AddSpot addSpot){
         if (officeRepository.existsById(addSpot.getOfficeId())) {
             if (catRepository.existsById(addSpot.getCategoryId())) {
-                List<Category> categories = getAllCategoryOffice(addSpot.getOfficeId());
+                List<Category> categories = catRepository.findByOfficeId(addSpot.getOfficeId());
                 Category category = catRepository.getReferenceById(addSpot.getCategoryId());
                 if (categories.contains(category)) {
                     List<String> sp = Arrays.asList(category.getSpotsName().split(" "));

@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.FullOfficeView;
 import com.example.demo.dto.GetCategory;
 import com.example.demo.entity.Category;
 import com.example.demo.entity.Office;
@@ -19,7 +20,7 @@ public class GeneralController {
     private BookingService bookingService;
 
     @GetMapping("/offices")
-    public ResponseEntity<List<Office>> getAllOffice() {
+    public ResponseEntity<List<FullOfficeView>> getAllOffice() {
         return ResponseEntity.ok(bookingService.getAllOffice());
     }
 
@@ -28,13 +29,7 @@ public class GeneralController {
         List<GetCategory> ans = new ArrayList<GetCategory>();
 
         try{
-            List<Category> category = bookingService.getAllCategoryOffice(officeId);
-            for(Category c : category){
-                GetCategory getCategory = new GetCategory();
-                getCategory.setId(c.getId());
-                getCategory.setName(c.getName());
-                ans.add(getCategory);
-            }
+            ans = bookingService.getAllCategoryOffice(officeId);
         }
         catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
