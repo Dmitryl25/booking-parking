@@ -270,7 +270,7 @@ const AdminUsers = () => {
                             required
                             value={formData.licensePlate}
                             error={formData.licensePlate !== '' && !isPlateValid(formData.licensePlate)}
-                            helperText={formData.licensePlate !== '' && !isPlateValid(formData.licensePlate) ? "Формат: А111АА199 (буква, 3 цифры, 2 буквы, 3 цифры)" : ""}
+                            helperText={formData.licensePlate !== '' && !isPlateValid(formData.licensePlate) ? "Формат: А111АА199 (номер и регион)" : ""}
                             onChange={(e) => setFormData({...formData, licensePlate: e.target.value.toUpperCase()})}
                         />
                         <TextField 
