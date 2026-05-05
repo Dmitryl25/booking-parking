@@ -36,7 +36,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
     );
 
     @Transactional(readOnly = true)
-    @Query("SELECT s.spot_number" +
+    @Query("SELECT s.spot_number " +
             "FROM Spot s " +
             "WHERE s.category.id = :categoryId " +
             "AND s.office.id = :officeId " +
