@@ -199,7 +199,7 @@ const AdminCategories = () => {
             </Box>
 
             {error && !addOpen && !editOpen && (
-                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>
+                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>{error}</Alert>
             )}
 
             {loading ? (
@@ -289,7 +289,7 @@ const AdminCategories = () => {
             )}
 
             {/* Модальное окно добавления */}
-            <Dialog open={addOpen} onClose={() => !actionLoading && setAddOpen(false)} fullWidth maxWidth="sm">
+            <Dialog open={addOpen} onClose={() => {if(!actionLoading) setAddOpen(false); setError(null)}} fullWidth maxWidth="sm">
                 <DialogTitle sx={{ fontWeight: 800 }}>Новая категория для {officeAddress}</DialogTitle>
                 <DialogContent>
                     {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
@@ -320,7 +320,7 @@ const AdminCategories = () => {
                     />
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setAddOpen(false)} disabled={actionLoading}>Отмена</Button>
+                    <Button onClick={() => {setError(null); setAddOpen(false)}} disabled={actionLoading}>Отмена</Button>
                     <Button variant="contained" onClick={handleAddCategory} disabled={!formData.name.trim() || !formData.count || !formData.spots || actionLoading}>
                         {actionLoading ? <CircularProgress size={24} /> : "Создать"}
                     </Button>
@@ -328,7 +328,7 @@ const AdminCategories = () => {
             </Dialog>
 
             {/* Модальное окно редактирования */}
-            <Dialog open={editOpen} onClose={() => !actionLoading && setEditOpen(false)} fullWidth maxWidth="xs">
+            <Dialog open={editOpen} onClose={() => {if(!actionLoading) setEditOpen(false); setError(null)}} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Редактировать категорию</DialogTitle>
                 <DialogContent>
                     {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
@@ -341,7 +341,7 @@ const AdminCategories = () => {
                     />
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setEditOpen(false)} disabled={actionLoading}>Отмена</Button>
+                    <Button onClick={() => {setError(null); setEditOpen(false)}} disabled={actionLoading}>Отмена</Button>
                     <Button variant="contained" onClick={handleEditCategory} disabled={!editData.name.trim() || actionLoading}>
                         {actionLoading ? <CircularProgress size={24} /> : "Сохранить"}
                     </Button>

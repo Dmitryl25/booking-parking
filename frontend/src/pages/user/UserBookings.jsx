@@ -140,7 +140,7 @@ const UserBookings = () => {
             </Stack>
 
             {error && (
-                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>
+                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>{error}</Alert>
             )}
 
             {bookings.length > 0 ? (
@@ -233,7 +233,7 @@ const UserBookings = () => {
                 )
             )}
 
-            {/* Модальное окно */}
+            {/* Модальное окно подтверждения */}
             <ConfirmModal 
                 open={modal.open}
                 onClose={closeModal}

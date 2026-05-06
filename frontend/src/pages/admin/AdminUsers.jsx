@@ -241,7 +241,7 @@ const AdminUsers = () => {
             )}
 
             {/* Модальное окно добавления */}
-            <Dialog open={openAdd} onClose={() => !actionLoading && setOpenAdd(false)} fullWidth maxWidth="xs">
+            <Dialog open={openAdd} onClose={() => {if(!actionLoading) setOpenAdd(false); setError(null)}} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Новый сотрудник</DialogTitle>
                 <DialogContent>
                     {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
@@ -310,7 +310,7 @@ const AdminUsers = () => {
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setOpenAdd(false)} disabled={actionLoading}>Отмена</Button>
+                    <Button onClick={() => {setError(null); setOpenAdd(false);}} disabled={actionLoading}>Отмена</Button>
                     <Button variant="contained" onClick={handleCreateUser} disabled={actionLoading || !formData.name || !isEmailValid(formData.email) || !isPlateValid(formData.licensePlate) || !formData.password}>
                         {actionLoading ? <CircularProgress size={24} /> : "Создать"}
                     </Button>
@@ -318,7 +318,7 @@ const AdminUsers = () => {
             </Dialog>
 
             {/* Модальное окно редактирования */}
-            <Dialog open={openEdit} onClose={() => setOpenEdit(false)} fullWidth maxWidth="xs">
+            <Dialog open={openEdit} onClose={() => {if (!actionLoading) setOpenEdit(false); setError(null); setFormData({ ...formData, tempPassword: '' });}} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Редактирование профиля</DialogTitle>
                 <DialogContent>
                     {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
@@ -369,9 +369,12 @@ const AdminUsers = () => {
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => {
-                        setOpenEdit(false);
-                        setFormData({ ...formData, tempPassword: '' });
-                    }}>
+                            setError(null);
+                            setOpenEdit(false);
+                            setFormData({ ...formData, tempPassword: '' });
+                        }}
+                        disabled={actionLoading}
+                    >
                         Закрыть
                     </Button>
                     <Button variant="contained" disabled={!formData.name || !isPlateValid(formData.licensePlate) || actionLoading} onClick={handleUpdateUser}>

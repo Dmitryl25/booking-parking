@@ -411,6 +411,7 @@ const BookingPage = () => {
                 </Box>
             )}
 
+            {/* Модальное окно подтверждения */}
             <ConfirmModal 
                 open={modal.open}
                 onClose={() => modal.type === 'success' ? navigate('/user/bookings') : setModal({ ...modal, open: false })}

@@ -300,7 +300,7 @@ const AdminSpots = () => {
             </Box>
 
             {error && !addOpen && !blockOpen && !infoOpen && (
-                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>
+                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>{error}</Alert>
             )}
 
             {loading ? (
@@ -407,7 +407,7 @@ const AdminSpots = () => {
             )}
 
             {/* Модальное окно добавления места */}
-            <Dialog open={addOpen} onClose={() => !actionLoading && setAddOpen(false)} fullWidth maxWidth="xs">
+            <Dialog open={addOpen} onClose={() => {if(!actionLoading) setAddOpen(false); setError(null)}} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Новое парковочное место</DialogTitle>
                 <DialogContent>
                     {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
@@ -438,7 +438,7 @@ const AdminSpots = () => {
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setAddOpen(false)} disabled={actionLoading}>Отмена</Button>
+                    <Button onClick={() => {setError(null); setAddOpen(false)}} disabled={actionLoading}>Отмена</Button>
                     <Button variant="contained" disabled={!newData.number.trim() || !newData.categoryId || actionLoading} onClick={handleAddSpot}>
                         {actionLoading ? <CircularProgress size={24} /> : "Создать"}
                     </Button>
@@ -446,7 +446,7 @@ const AdminSpots = () => {
             </Dialog>
 
             {/* Модальное окно блокировки */}
-            <Dialog open={blockOpen} onClose={() => !actionLoading && setBlockOpen(false)} fullWidth maxWidth="xs">
+            <Dialog open={blockOpen} onClose={() => {if(!actionLoading) setBlockOpen(false); setError(null)}} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Блокировка места {selectedSpot?.number}</DialogTitle>
                 <DialogContent>
                     {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
@@ -483,7 +483,7 @@ const AdminSpots = () => {
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setBlockOpen(false)} disabled={actionLoading}>Отмена</Button>
+                    <Button onClick={() => {setError(null); setBlockOpen(false)}} disabled={actionLoading}>Отмена</Button>
                     <Button variant="contained" disabled={!blockData.date || !blockData.startTime || !blockData.endTime || actionLoading} color="error" onClick={handleForceBlockClick}>
                         {actionLoading ? <CircularProgress size={24} /> : "Заблокировать"}
                     </Button>
@@ -491,7 +491,7 @@ const AdminSpots = () => {
             </Dialog>
 
             {/* Модальное окно информации о блокировке */}
-            <Dialog open={infoOpen} onClose={() => setInfoOpen(false)} fullWidth maxWidth="xs">
+            <Dialog open={infoOpen} onClose={() => {if(!actionLoading) setInfoOpen(false); setError(null)}} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Блокировка места {selectedSpot?.number}</DialogTitle>
                 <DialogContent>
                     {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
@@ -499,10 +499,10 @@ const AdminSpots = () => {
                         <Box display="flex" justifyContent="center" p={3}><CircularProgress size={24} /></Box>
                     ) : blockingInfo ? (
                         <Stack spacing={2} sx={{ mt: 1 }}>
-                            <Box sx={{ 
-                                p: 2, 
-                                bgcolor: '#f8f9fa', 
-                                borderRadius: 2, 
+                            <Box sx={{
+                                p: 2,
+                                bgcolor: '#f8f9fa',
+                                borderRadius: 2,
                                 border: '1px solid #eee',
                                 textAlign: 'center'
                             }}>
@@ -537,7 +537,7 @@ const AdminSpots = () => {
                     >
                         Разблокировать
                     </Button>
-                    <Button onClick={() => setInfoOpen(false)} variant="outlined">
+                    <Button onClick={() => {setError(null); setInfoOpen(false)}} disabled={actionLoading} variant="outlined">
                         Закрыть
                     </Button>
                 </DialogActions>

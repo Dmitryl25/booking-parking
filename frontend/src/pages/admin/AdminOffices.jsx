@@ -172,7 +172,7 @@ const AdminOffices = () => {
             </Box>
 
             {error && !open && !editOpen && (
-                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>
+                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>{error}</Alert>
             )}
 
             {loading ? (
@@ -274,7 +274,7 @@ const AdminOffices = () => {
             )}
 
             {/* Модальное окно добавления */}
-            <Dialog open={open} onClose={() => !actionLoading && setOpen(false)} fullWidth maxWidth="xs">
+            <Dialog open={open} onClose={() => {if(!actionLoading) setOpen(false); setError(null)}} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Новый офис</DialogTitle>
                 <DialogContent>
                     {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
@@ -291,7 +291,7 @@ const AdminOffices = () => {
                     />
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setOpen(false)} disabled={actionLoading}>Отмена</Button>
+                    <Button onClick={() => {setError(null); setOpen(false);}} disabled={actionLoading}>Отмена</Button>
                     <Button onClick={handleAddOffice} variant="contained" disabled={!newOfficeAddress.trim() || actionLoading}>
                         {actionLoading ? <CircularProgress size={24} /> : "Создать"}
                     </Button>
@@ -299,7 +299,7 @@ const AdminOffices = () => {
             </Dialog>
 
             {/* Модальное окно редактирования */}
-            <Dialog open={editOpen} onClose={() => !actionLoading && setEditOpen(false)} fullWidth maxWidth="xs">
+            <Dialog open={editOpen} onClose={() => {if(!actionLoading) setEditOpen(false); setError(null)}} fullWidth maxWidth="xs">
                 <DialogTitle sx={{ fontWeight: 800 }}>Редактировать адрес</DialogTitle>
                 <DialogContent>
                     {error && <Alert severity="error" sx={{ mb: 2, mt: 1, borderRadius: 2 }}>{error}</Alert>}
@@ -316,7 +316,7 @@ const AdminOffices = () => {
                     />
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setEditOpen(false)} disabled={actionLoading}>Отмена</Button>
+                    <Button onClick={() => {setError(null); setEditOpen(false);}} disabled={actionLoading}>Отмена</Button>
                     <Button 
                         onClick={handleUpdateOffice} 
                         variant="contained"
