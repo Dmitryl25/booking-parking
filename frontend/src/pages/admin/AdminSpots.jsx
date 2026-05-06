@@ -11,6 +11,35 @@ import LockOpenIcon from '@mui/icons-material/LockOpen';
 import { adminApi, commonApi } from "../../api/index";
 import ConfirmModal from "../../components/ConfirmModal";
 
+// Получение времени + 1 час
+const getTimeWithOffset = (offsetHours) => {
+    const d = new Date();
+    d.setHours(d.getHours() + offsetHours, 0, 0, 0); 
+    const h = String(d.getHours()).padStart(2, '0');
+    return `${h}:00`;
+};
+
+// Функция для отправки данных с локальным часовым поясом
+const toLocalISOString = (date, timeStr) => {
+    const [hours, minutes] = timeStr.split(':');
+    const d = new Date(date);
+    d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+    const tzo = -d.getTimezoneOffset();
+    const dif = tzo >= 0 ? '+' : '-';
+    const pad = (num) => String(Math.floor(Math.abs(num))).padStart(2, '0');
+    
+    // Формат: YYYY-MM-DDTHH:mm:ss+HH:mm
+    return d.getFullYear() +
+        '-' + pad(d.getMonth() + 1) +
+        '-' + pad(d.getDate()) +
+        'T' + pad(d.getHours()) +
+        ':' + pad(d.getMinutes()) +
+        ':' + pad(d.getSeconds()) +
+        dif + pad(tzo / 60) +
+        ':' + pad(tzo % 60);
+};
+
 const AdminSpots = () => {
     const { officeId } = useParams();
     const navigate = useNavigate();
@@ -32,8 +61,8 @@ const AdminSpots = () => {
     const [selectedSpot, setSelectedSpot] = useState(null);
     const [blockData, setBlockData] = useState({
         date: new Date().toISOString().split('T')[0],
-        startTime: '09:00',
-        endTime: '18:00'
+        startTime: getTimeWithOffset(1),
+        endTime: getTimeWithOffset(2)
     });
     const minDateStr = new Date().toISOString().split('T')[0];
 
@@ -182,6 +211,22 @@ const AdminSpots = () => {
 
     // Блокирование парковочного места
     const handleForceBlockClick = () => {
+        const start = new Date(`${blockData.date}T${blockData.startTime}:00`);
+        const end = new Date(`${blockData.date}T${blockData.endTime}:00`);
+        const currentTime = new Date();
+
+        // Валидация - начало не в прошлом
+        if (start < currentTime) {
+            setError("Нельзя забронировать на время в прошлом");
+            return;
+        }
+
+        // Валидация - конец позже начала
+        if (start >= end) {
+            setError("Время конца бронирования должно быть позже времени начала");
+            return;
+        }
+
         showModal(
             'Блокировка',
             `Заблокировать место ${selectedSpot.number}? При блокировке существующие брони на это место удаляются`,
@@ -191,14 +236,6 @@ const AdminSpots = () => {
     };
 
     const handleForceBlock = async () => {
-        const start = new Date(`${blockData.date}T${blockData.startTime}:00`);
-        const end = new Date(`${blockData.date}T${blockData.endTime}:00`);
-
-        if (start >= end) {
-            showModal('Ошибка времени', 'Время окончания должно быть позже времени начала', 'error');
-            return;
-        }
-
         setActionLoading(true);
         setError(null);
         const category = allCategories.find(c => c.name === selectedSpot.category);
@@ -208,8 +245,8 @@ const AdminSpots = () => {
                 officeId: parseInt(officeId),
                 categoryId: category.id,
                 number: selectedSpot.number,
-                startTime: start.toISOString(),
-                endTime: end.toISOString()
+                startTime: toLocalISOString(blockData.date, blockData.startTime),
+                endTime: toLocalISOString(blockData.date, blockData.endTime)
             });
             setBlockOpen(false);
             fetchSpots();
