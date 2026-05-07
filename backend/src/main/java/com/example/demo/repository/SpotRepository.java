@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Repository
 public interface SpotRepository extends JpaRepository<Spot, Long> {
@@ -76,7 +77,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             "WHERE s.category.id = :categoryId " +
             "AND s.office.id = :officeId " +
             "AND s.spot_number = :spot_number ")
-    boolean BookedByAdmin(
+    Optional<Boolean> BookedByAdmin(
             @Param("categoryId") Long catId,
             @Param("officeId") Long officeId,
             @Param("spot_number") String spot_number

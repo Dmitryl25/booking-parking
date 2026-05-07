@@ -420,7 +420,12 @@ public class BookingService {
                 booking.setNumber(name);
                 booking.setCategory(cat.getName());
                 if (spotRepository.existsSpotByParameters(cat.getId(), office_id, name, ZonedDateTime.now())){
-                    booking.setAvailable(!spotRepository.BookedByAdmin(cat.getId(), office_id, name));
+                    Optional<Boolean> isBookedByAdmin = spotRepository.BookedByAdmin(cat.getId(), office_id, name);
+                    if (isBookedByAdmin.isPresent()) {
+                        booking.setAvailable(!isBookedByAdmin.get());
+                    } else {
+                        booking.setAvailable(true);
+                    }
                 }
                 else{
                     booking.setAvailable(true);
