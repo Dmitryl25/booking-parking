@@ -93,7 +93,7 @@ const UserBookings = () => {
             title: 'Отмена бронирования',
             message: `Вы действительно хотите отменить бронирование места ${booking.spotNumber} в офисе ${booking.office}?`,
             type: 'confirm',
-            bookingId: booking.id
+            bookingId: booking.Id
         });
     }
 
@@ -103,7 +103,7 @@ const UserBookings = () => {
         setError(null);
         try {
             await userApi.bookingsIdDelete(modal.bookingId);
-            setBookings(bookings.filter(b => b.id !== modal.bookingId));
+            setBookings(bookings.filter(b => b.Id !== modal.bookingId));
 
             setModal({
                 open: true,
@@ -147,7 +147,7 @@ const UserBookings = () => {
                 <Stack spacing={2}>
                     {bookings.map((booking) => (
                         <Card 
-                            key={booking.id} 
+                            key={booking.Id} 
                             variant="outlined" 
                             sx={{ 
                                 borderRadius: 3, 
@@ -198,7 +198,7 @@ const UserBookings = () => {
                                     <Button 
                                         size="small" 
                                         color="error" 
-                                        startIcon={actionLoading && modal.bookingId === booking.id ? <CircularProgress size={14} color="inherit" /> : <CloseIcon />}
+                                        startIcon={actionLoading && modal.bookingId === booking.Id ? <CircularProgress size={14} color="inherit" /> : <CloseIcon />}
                                         onClick={() => handleOpenCancelModal(booking)}
                                         disabled={actionLoading}
                                         sx={{ fontWeight: 600, textTransform: 'none' }}
@@ -237,7 +237,13 @@ const UserBookings = () => {
             <ConfirmModal 
                 open={modal.open}
                 onClose={closeModal}
-                onConfirm={modal.type === 'confirm' ? confirmCancel : null}
+                onConfirm={() => {
+                    if (modal.type === 'confirm') {
+                        confirmCancel();
+                    } else {
+                        closeModal();
+                    }
+                }}
                 title={modal.title}
                 message={modal.message}
                 type={modal.type}
