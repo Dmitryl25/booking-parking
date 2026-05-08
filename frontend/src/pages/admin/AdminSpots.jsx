@@ -120,8 +120,9 @@ const AdminSpots = () => {
         setLoading(true);
         setError(null);
         try {
+            let currentAddress = officeAddress;
             // Получаем адрес офиса, если его нет в state
-            if (!officeAddress) {
+            if (!currentAddress) {
                 const offRes = await commonApi.officesGet();
                 const current = offRes.data.find(o => o.id === parseInt(officeId));
                 if (current) setOfficeAddress(current.address);
@@ -155,7 +156,7 @@ const AdminSpots = () => {
         } finally {
             setLoading(false);
         }
-    }, [officeId, officeAddress]);
+    }, [officeId]);
 
     useEffect(() => { fetchSpots(); }, [fetchSpots]);
 

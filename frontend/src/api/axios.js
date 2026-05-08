@@ -41,7 +41,7 @@ api.interceptors.response.use(
                     localStorage.setItem('refreshToken', refreshToken);
 
                     // Обновляем заголовок в упавшем запросе и повторяем его
-                    originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+                    originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
 
                     return api(originalRequest);
                 } catch (refreshError) {
