@@ -5,9 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**spotId** | **number** |  | [optional] [default to undefined]
 **number** | **string** |  | [optional] [default to undefined]
-**category** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -15,9 +13,7 @@ Name | Type | Description | Notes
 import { BookingsSearchPost200ResponseInner } from './api';
 
 const instance: BookingsSearchPost200ResponseInner = {
-    spotId,
     number,
-    category,
 };
 ```
 

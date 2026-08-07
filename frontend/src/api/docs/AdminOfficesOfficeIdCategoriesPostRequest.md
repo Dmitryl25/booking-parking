@@ -6,6 +6,8 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **string** |  | [default to undefined]
+**spotsName** | **string** |  | [default to undefined]
+**spot_count** | **number** |  | [default to undefined]
 
 ## Example
 
@@ -14,6 +16,8 @@ import { AdminOfficesOfficeIdCategoriesPostRequest } from './api';
 
 const instance: AdminOfficesOfficeIdCategoriesPostRequest = {
     name,
+    spotsName,
+    spot_count,
 };
 ```
 

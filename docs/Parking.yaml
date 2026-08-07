@@ -141,6 +141,8 @@ paths:
                       type: integer
                     name:
                       type: string
+                    spot_count:
+                      type: integer
         '401':
           description: Unauthorized
         '404':
@@ -161,9 +163,11 @@ paths:
           application/json:
             schema:
               type: object
-              required: [officeId, startTime, endTime]
+              required: [officeId, categoryId, startTime, endTime]
               properties:
                 officeId:
+                  type: integer
+                categoryId:
                   type: integer
                 startTime:
                   type: string
@@ -181,11 +185,7 @@ paths:
                 items:
                   type: object
                   properties:
-                    spotId:
-                      type: integer
                     number:
-                      type: string
-                    category:
                       type: string
         '400':
           description: Invalid date range
@@ -207,10 +207,14 @@ paths:
           application/json:
             schema:
               type: object
-              required: [spotId, startTime, endTime]
+              required: [officeId, categoryId, number, startTime, endTime]
               properties:
-                spotId:
+                officeId:
                   type: integer
+                categoryId:
+                  type: integer
+                number:
+                  type: string
                 startTime:
                   type: string
                   format: date-time
@@ -302,7 +306,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [email, name, licensePlate]
+              required: [email, name, licensePlate, password]
               properties:
                 email:
                   type: string
@@ -311,25 +315,14 @@ paths:
                   type: string
                 licensePlate:
                   type: string
+                password:
+                  type: string
+                role:
+                  type: string
+                  nullable: true
       responses:
         '201':
           description: User created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  name:
-                    type: string
-                  licensePlate:
-                    type: string
-                  email:
-                    type: string
-                    format: email
-                  password:
-                    type: string
         '401':
           description: Unauthorized
         '403':
@@ -362,8 +355,34 @@ paths:
                       type: string
                     licensePlate:
                       type: string
+                    role:
+                      type: string
         '401':
           description: Unauthorized
+  
+  /admin/generate-password:
+    post:
+      summary: Generate random password
+      description: Генерация случайного пароля на сервере
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Password generated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [password]
+                properties:
+                  password:
+                    type: string
+                    description: Сгенерированный пароль
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
 
   /admin/users/{id}:
     put:
@@ -472,7 +491,16 @@ paths:
                   type: string
       responses:
         '201':
-          description: Created
+          description: Office created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  address:
+                    type: string
         '401':
           description: Unauthorized
         '403':
@@ -554,10 +582,14 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name]
+              required: [name, spotsName, spot_count]
               properties:
                 name:
                   type: string
+                spotsName:
+                  type: string
+                spot_count:
+                  type: integer
       responses:
         '201':
           description: Created
@@ -569,8 +601,48 @@ paths:
           description: Office not found
         '409':
           description: Category already exists in this office
-
-  /admin/categories/{id}:
+  
+  /admin/offices/{officeId}/categories/{id}:
+    put:
+      summary: Update category
+      description: Обновление категории. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: officeId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID офиса
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Номер категории
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Updated
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Office not found
+        '409':
+          description: Category with this name already exists in this office
     delete:
       summary: Delete category
       description: Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
@@ -578,6 +650,11 @@ paths:
       security:
         - bearerAuth: []
       parameters:
+        - name: officeId
+          in: path
+          required: true
+          schema:
+            type: integer
         - name: id
           in: path
           required: true
@@ -627,6 +704,36 @@ paths:
           description: Office or category not found
         '409':
           description: Spot with such number already exists in this office
+  /admin/parking-spots/delete:
+    post:
+      summary: Delete parking spot
+      description: Удаление парковочного места. Только для администратора.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [number, categoryId, officeId]
+              properties:
+                number:
+                  type: string
+                categoryId:
+                  type: integer
+                officeId:
+                  type: integer
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Spot not found
 
   /admin/offices/{officeId}/parking-spots:
     get:
@@ -651,8 +758,6 @@ paths:
                 items:
                   type: object
                   properties:
-                    id:
-                      type: integer
                     number:
                       type: string
                     category:
@@ -665,69 +770,37 @@ paths:
           description: Forbidden (not admin)
         '404':
           description: Office not found
-
-  /admin/parking-spots/{id}:
-    delete:
-      summary: Delete parking spot
-      description: Удаление парковочного места. Только для администратора.
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Deleted
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden (not admin)
-        '404':
-          description: Spot not found
   
-  /admin/parking-spots/{id}/status:
-    patch:
-      summary: Update parking spot status
-      description: Изменение статуса парковочного места (доступно/заблокировано). Только для администратора.
+  /admin/bookings/force:
+    post:
+      summary: Spot blocking
+      description: Блокирование места.
       tags: [Admin]
       security:
         - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID парковочного места
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [available]
+              required: [officeId, categoryId, number, startTime, endTime]
               properties:
-                available:
-                  type: boolean
-                  description: true - место доступно для бронирования, false - место заблокировано
+                officeId:
+                  type: integer
+                categoryId:
+                  type: integer
+                number:
+                  type: string
+                startTime:
+                  type: string
+                  format: date-time
+                endTime:
+                  type: string
+                  format: date-time
       responses:
         '200':
-          description: Status updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  number:
-                    type: string
-                  available:
-                    type: boolean
+          description: Blocked
         '400':
           description: Invalid request
         '401':
@@ -736,6 +809,84 @@ paths:
           description: Forbidden (not admin)
         '404':
           description: Spot not found
+  /admin/bookings/unblock:
+    post:
+      summary: Spot unblocking
+      description: Разблокировка места.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [number, categoryId, officeId]
+              properties:
+                number:
+                  type: string
+                categoryId:
+                  type: integer
+                officeId:
+                  type: integer
+      responses:
+        '200':
+          description: Unblocked
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Spot not found
+  /admin/bookings/getinfo:
+    post:
+      summary: blocked spot information
+      description: Получение инфы о заблокированном месте.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [number, categoryId, officeId]
+              properties:
+                number:
+                  type: string
+                categoryId:
+                  type: integer
+                officeId:
+                  type: integer
+      responses:
+        '200':
+          description: Blocked spot information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  startTime:
+                    type: string
+                    format: date-time
+                  endTime:
+                    type: string
+                    format: date-time
+                  
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not admin)
+        '404':
+          description: Spot not found
+  
+
 
 components:
   securitySchemes:

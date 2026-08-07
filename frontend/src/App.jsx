@@ -1,11 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { theme } from './theme';
 import Login from './pages/Login';
-// import Header from './components/Header';
-
-// Временные компоненты
-const AdminOffices = () => <div>Страница админа</div>;
-const UserBookings = () => <div>Страница пользователя</div>;
+import Header from './components/Header';
+import UserBookings from './pages/user/UserBookings';
+import BookingPage from './pages/user/BookingPage';
+import AdminOffices from './pages/admin/AdminOffices';
+import AdminCategories from './pages/admin/AdminCategories';
+import AdminSpots from './pages/admin/AdminSpots';
+import AdminUsers from './pages/admin/AdminUsers';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
   const { user } = useAuth();
@@ -20,40 +25,77 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path='/login' element={<Login />} />
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
 
-          <Route path='*' element={
-            <>
-              {/* <Header /> */}
-              <Routes>
-                {/* Маршруты администратора */}
-                <Route 
-                path='/admin/offices'
-                element={
-                  <ProtectedRoute allowedRole='ROLE_ADMIN'>
-                    <AdminOffices />
-                  </ProtectedRoute>
-                } 
-                />
+            <Routes>
+            <Route path='/login' element={<Login />} />
 
-                {/* Маршруты пользователя */}
-                <Route
-                path='/user/bookings'
-                element={
-                  <ProtectedRoute allowedRole='ROLE_USER'>
-                    <UserBookings />
-                  </ProtectedRoute>
-                }
-                />
+            <Route path='*' element={
+              <>
+                <Header />
+                <Routes>
+                  {/* Маршруты администратора */}
+                  <Route 
+                  path='/admin/offices'
+                  element={
+                    <ProtectedRoute allowedRole='ROLE_ADMIN'>
+                      <AdminOffices />
+                    </ProtectedRoute>
+                  } 
+                  />
+                  <Route
+                  path='/admin/offices/:officeId/categories'
+                  element={
+                    <ProtectedRoute allowedRole='ROLE_ADMIN'>
+                      <AdminCategories />
+                    </ProtectedRoute>
+                  }
+                  />
+                  <Route
+                  path='/admin/offices/:officeId/spots'
+                  element={
+                    <ProtectedRoute allowedRole='ROLE_ADMIN'>
+                      <AdminSpots />
+                    </ProtectedRoute>
+                  }
+                  />
+                  <Route
+                  path='/admin/users'
+                  element={
+                    <ProtectedRoute allowedRole='ROLE_ADMIN'>
+                      <AdminUsers />
+                    </ProtectedRoute>
+                  }
+                  />
 
-                {/* Редирект с главной страницы на логин */}
-                <Route path='/' element={<Navigate to='/login' />} />
-              </Routes>
-            </>
-          }>
-          </Route>
-        </Routes>
+                  {/* Маршруты пользователя */}
+                  <Route
+                  path='/user/bookings'
+                  element={
+                    <ProtectedRoute allowedRole='ROLE_USER'>
+                      <UserBookings />
+                    </ProtectedRoute>
+                  }
+                  />
+                  <Route
+                  path='/user/booking'
+                  element={
+                    <ProtectedRoute allowedRole='ROLE_USER'>
+                      <BookingPage />
+                    </ProtectedRoute>
+                  }
+                  />
+
+                  {/* Редирект с главной страницы на логин */}
+                  <Route path='/' element={<Navigate to='/login' />} />
+                </Routes>
+              </>
+            }>
+            </Route>
+          </Routes>
+        </ThemeProvider>
+        
       </BrowserRouter>
     </AuthProvider>
   )

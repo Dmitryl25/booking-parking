@@ -4,14 +4,18 @@ All URIs are relative to *http://localhost:8080/api*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**adminCategoriesIdDelete**](#admincategoriesiddelete) | **DELETE** /admin/categories/{id} | Delete category|
+|[**adminBookingsForcePost**](#adminbookingsforcepost) | **POST** /admin/bookings/force | Spot blocking|
+|[**adminBookingsGetinfoPost**](#adminbookingsgetinfopost) | **POST** /admin/bookings/getinfo | blocked spot information|
+|[**adminBookingsUnblockPost**](#adminbookingsunblockpost) | **POST** /admin/bookings/unblock | Spot unblocking|
+|[**adminGeneratePasswordPost**](#admingeneratepasswordpost) | **POST** /admin/generate-password | Generate random password|
 |[**adminOfficesIdDelete**](#adminofficesiddelete) | **DELETE** /admin/offices/{id} | Delete office|
 |[**adminOfficesIdPut**](#adminofficesidput) | **PUT** /admin/offices/{id} | Update office|
+|[**adminOfficesOfficeIdCategoriesIdDelete**](#adminofficesofficeidcategoriesiddelete) | **DELETE** /admin/offices/{officeId}/categories/{id} | Delete category|
+|[**adminOfficesOfficeIdCategoriesIdPut**](#adminofficesofficeidcategoriesidput) | **PUT** /admin/offices/{officeId}/categories/{id} | Update category|
 |[**adminOfficesOfficeIdCategoriesPost**](#adminofficesofficeidcategoriespost) | **POST** /admin/offices/{officeId}/categories | Create category|
 |[**adminOfficesOfficeIdParkingSpotsGet**](#adminofficesofficeidparkingspotsget) | **GET** /admin/offices/{officeId}/parking-spots | Get parking spots|
 |[**adminOfficesPost**](#adminofficespost) | **POST** /admin/offices | Create office|
-|[**adminParkingSpotsIdDelete**](#adminparkingspotsiddelete) | **DELETE** /admin/parking-spots/{id} | Delete parking spot|
-|[**adminParkingSpotsIdStatusPatch**](#adminparkingspotsidstatuspatch) | **PATCH** /admin/parking-spots/{id}/status | Update parking spot status|
+|[**adminParkingSpotsDeletePost**](#adminparkingspotsdeletepost) | **POST** /admin/parking-spots/delete | Delete parking spot|
 |[**adminParkingSpotsPost**](#adminparkingspotspost) | **POST** /admin/parking-spots | Create parking spot|
 |[**adminUsersGet**](#adminusersget) | **GET** /admin/users | Get all users|
 |[**adminUsersIdDelete**](#adminusersiddelete) | **DELETE** /admin/users/{id} | Delete user|
@@ -19,26 +23,27 @@ All URIs are relative to *http://localhost:8080/api*
 |[**adminUsersIdResetPasswordPost**](#adminusersidresetpasswordpost) | **POST** /admin/users/{id}/reset-password | Reset user password|
 |[**adminUsersPost**](#adminuserspost) | **POST** /admin/users | Create user|
 
-# **adminCategoriesIdDelete**
-> adminCategoriesIdDelete()
+# **adminBookingsForcePost**
+> adminBookingsForcePost(bookingsPostRequest)
 
-Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
+Блокирование места.
 
 ### Example
 
 ```typescript
 import {
     AdminApi,
-    Configuration
+    Configuration,
+    BookingsPostRequest
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new AdminApi(configuration);
 
-let id: number; // (default to undefined)
+let bookingsPostRequest: BookingsPostRequest; //
 
-const { status, data } = await apiInstance.adminCategoriesIdDelete(
-    id
+const { status, data } = await apiInstance.adminBookingsForcePost(
+    bookingsPostRequest
 );
 ```
 
@@ -46,7 +51,7 @@ const { status, data } = await apiInstance.adminCategoriesIdDelete(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **id** | [**number**] |  | defaults to undefined|
+| **bookingsPostRequest** | **BookingsPostRequest**|  | |
 
 
 ### Return type
@@ -59,17 +64,176 @@ void (empty response body)
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
+ - **Content-Type**: application/json
  - **Accept**: Not defined
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Deleted |  -  |
+|**200** | Blocked |  -  |
+|**400** | Invalid request |  -  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden (not admin) |  -  |
-|**404** | Category not found |  -  |
+|**404** | Spot not found |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminBookingsGetinfoPost**
+> AdminBookingsGetinfoPost200Response adminBookingsGetinfoPost(adminParkingSpotsPostRequest)
+
+Получение инфы о заблокированном месте.
+
+### Example
+
+```typescript
+import {
+    AdminApi,
+    Configuration,
+    AdminParkingSpotsPostRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AdminApi(configuration);
+
+let adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest; //
+
+const { status, data } = await apiInstance.adminBookingsGetinfoPost(
+    adminParkingSpotsPostRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **adminParkingSpotsPostRequest** | **AdminParkingSpotsPostRequest**|  | |
+
+
+### Return type
+
+**AdminBookingsGetinfoPost200Response**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Blocked spot information |  -  |
+|**400** | Invalid request |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden (not admin) |  -  |
+|**404** | Spot not found |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminBookingsUnblockPost**
+> adminBookingsUnblockPost(adminParkingSpotsPostRequest)
+
+Разблокировка места.
+
+### Example
+
+```typescript
+import {
+    AdminApi,
+    Configuration,
+    AdminParkingSpotsPostRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AdminApi(configuration);
+
+let adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest; //
+
+const { status, data } = await apiInstance.adminBookingsUnblockPost(
+    adminParkingSpotsPostRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **adminParkingSpotsPostRequest** | **AdminParkingSpotsPostRequest**|  | |
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Unblocked |  -  |
+|**400** | Invalid request |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden (not admin) |  -  |
+|**404** | Spot not found |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminGeneratePasswordPost**
+> AdminGeneratePasswordPost200Response adminGeneratePasswordPost()
+
+Генерация случайного пароля на сервере
+
+### Example
+
+```typescript
+import {
+    AdminApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AdminApi(configuration);
+
+const { status, data } = await apiInstance.adminGeneratePasswordPost();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**AdminGeneratePasswordPost200Response**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Password generated |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden (not admin) |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -182,6 +346,125 @@ void (empty response body)
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden (not admin) |  -  |
 |**404** | Office not found |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminOfficesOfficeIdCategoriesIdDelete**
+> adminOfficesOfficeIdCategoriesIdDelete()
+
+Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
+
+### Example
+
+```typescript
+import {
+    AdminApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AdminApi(configuration);
+
+let officeId: number; // (default to undefined)
+let id: number; // (default to undefined)
+
+const { status, data } = await apiInstance.adminOfficesOfficeIdCategoriesIdDelete(
+    officeId,
+    id
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **officeId** | [**number**] |  | defaults to undefined|
+| **id** | [**number**] |  | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Deleted |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden (not admin) |  -  |
+|**404** | Category not found |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminOfficesOfficeIdCategoriesIdPut**
+> adminOfficesOfficeIdCategoriesIdPut(adminOfficesOfficeIdCategoriesIdPutRequest)
+
+Обновление категории. Только для администратора.
+
+### Example
+
+```typescript
+import {
+    AdminApi,
+    Configuration,
+    AdminOfficesOfficeIdCategoriesIdPutRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AdminApi(configuration);
+
+let officeId: number; //ID офиса (default to undefined)
+let id: number; //Номер категории (default to undefined)
+let adminOfficesOfficeIdCategoriesIdPutRequest: AdminOfficesOfficeIdCategoriesIdPutRequest; //
+
+const { status, data } = await apiInstance.adminOfficesOfficeIdCategoriesIdPut(
+    officeId,
+    id,
+    adminOfficesOfficeIdCategoriesIdPutRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **adminOfficesOfficeIdCategoriesIdPutRequest** | **AdminOfficesOfficeIdCategoriesIdPutRequest**|  | |
+| **officeId** | [**number**] | ID офиса | defaults to undefined|
+| **id** | [**number**] | Номер категории | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Updated |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden (not admin) |  -  |
+|**404** | Office not found |  -  |
+|**409** | Category with this name already exists in this office |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -299,7 +582,7 @@ const { status, data } = await apiInstance.adminOfficesOfficeIdParkingSpotsGet(
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **adminOfficesPost**
-> adminOfficesPost(adminOfficesPostRequest)
+> OfficesGet200ResponseInner adminOfficesPost(adminOfficesPostRequest)
 
 Создание нового офиса. Только для администратора.
 
@@ -331,119 +614,7 @@ const { status, data } = await apiInstance.adminOfficesPost(
 
 ### Return type
 
-void (empty response body)
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: Not defined
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**201** | Created |  -  |
-|**401** | Unauthorized |  -  |
-|**403** | Forbidden (not admin) |  -  |
-|**409** | Office with this address already exists |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **adminParkingSpotsIdDelete**
-> adminParkingSpotsIdDelete()
-
-Удаление парковочного места. Только для администратора.
-
-### Example
-
-```typescript
-import {
-    AdminApi,
-    Configuration
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new AdminApi(configuration);
-
-let id: number; // (default to undefined)
-
-const { status, data } = await apiInstance.adminParkingSpotsIdDelete(
-    id
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **id** | [**number**] |  | defaults to undefined|
-
-
-### Return type
-
-void (empty response body)
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: Not defined
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Deleted |  -  |
-|**401** | Unauthorized |  -  |
-|**403** | Forbidden (not admin) |  -  |
-|**404** | Spot not found |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **adminParkingSpotsIdStatusPatch**
-> AdminParkingSpotsIdStatusPatch200Response adminParkingSpotsIdStatusPatch(adminParkingSpotsIdStatusPatchRequest)
-
-Изменение статуса парковочного места (доступно/заблокировано). Только для администратора.
-
-### Example
-
-```typescript
-import {
-    AdminApi,
-    Configuration,
-    AdminParkingSpotsIdStatusPatchRequest
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new AdminApi(configuration);
-
-let id: number; //ID парковочного места (default to undefined)
-let adminParkingSpotsIdStatusPatchRequest: AdminParkingSpotsIdStatusPatchRequest; //
-
-const { status, data } = await apiInstance.adminParkingSpotsIdStatusPatch(
-    id,
-    adminParkingSpotsIdStatusPatchRequest
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **adminParkingSpotsIdStatusPatchRequest** | **AdminParkingSpotsIdStatusPatchRequest**|  | |
-| **id** | [**number**] | ID парковочного места | defaults to undefined|
-
-
-### Return type
-
-**AdminParkingSpotsIdStatusPatch200Response**
+**OfficesGet200ResponseInner**
 
 ### Authorization
 
@@ -458,8 +629,62 @@ const { status, data } = await apiInstance.adminParkingSpotsIdStatusPatch(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Status updated |  -  |
-|**400** | Invalid request |  -  |
+|**201** | Office created |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden (not admin) |  -  |
+|**409** | Office with this address already exists |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminParkingSpotsDeletePost**
+> adminParkingSpotsDeletePost(adminParkingSpotsPostRequest)
+
+Удаление парковочного места. Только для администратора.
+
+### Example
+
+```typescript
+import {
+    AdminApi,
+    Configuration,
+    AdminParkingSpotsPostRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AdminApi(configuration);
+
+let adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest; //
+
+const { status, data } = await apiInstance.adminParkingSpotsDeletePost(
+    adminParkingSpotsPostRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **adminParkingSpotsPostRequest** | **AdminParkingSpotsPostRequest**|  | |
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Deleted |  -  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden (not admin) |  -  |
 |**404** | Spot not found |  -  |
@@ -735,7 +960,7 @@ const { status, data } = await apiInstance.adminUsersIdResetPasswordPost(
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **adminUsersPost**
-> AdminUsersPost201Response adminUsersPost(adminUsersPostRequest)
+> adminUsersPost(adminUsersPostRequest)
 
 Создание нового пользователя. Пароль генерируется автоматически.
 
@@ -767,7 +992,7 @@ const { status, data } = await apiInstance.adminUsersPost(
 
 ### Return type
 
-**AdminUsersPost201Response**
+void (empty response body)
 
 ### Authorization
 
@@ -776,7 +1001,7 @@ const { status, data } = await apiInstance.adminUsersPost(
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: application/json
+ - **Accept**: Not defined
 
 
 ### HTTP response details

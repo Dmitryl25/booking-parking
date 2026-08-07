@@ -5,7 +5,6 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**id** | **number** |  | [optional] [default to undefined]
 **number** | **string** |  | [optional] [default to undefined]
 **category** | **string** |  | [optional] [default to undefined]
 **available** | **boolean** |  | [optional] [default to undefined]
@@ -16,7 +15,6 @@ Name | Type | Description | Notes
 import { AdminOfficesOfficeIdParkingSpotsGet200ResponseInner } from './api';
 
 const instance: AdminOfficesOfficeIdParkingSpotsGet200ResponseInner = {
-    id,
     number,
     category,
     available,

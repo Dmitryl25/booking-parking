@@ -5,7 +5,9 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**spotId** | **number** |  | [default to undefined]
+**officeId** | **number** |  | [default to undefined]
+**categoryId** | **number** |  | [default to undefined]
+**number** | **string** |  | [default to undefined]
 **startTime** | **string** |  | [default to undefined]
 **endTime** | **string** |  | [default to undefined]
 
@@ -15,7 +17,9 @@ Name | Type | Description | Notes
 import { BookingsPostRequest } from './api';
 
 const instance: BookingsPostRequest = {
-    spotId,
+    officeId,
+    categoryId,
+    number,
     startTime,
     endTime,
 };

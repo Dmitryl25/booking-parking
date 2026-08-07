@@ -23,28 +23,31 @@ import type { RequestArgs } from './base';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
-export interface AdminOfficesOfficeIdCategoriesPostRequest {
+export interface AdminBookingsGetinfoPost200Response {
+    'startTime'?: string;
+    'endTime'?: string;
+}
+export interface AdminGeneratePasswordPost200Response {
+    /**
+     * Сгенерированный пароль
+     */
+    'password': string;
+}
+export interface AdminOfficesOfficeIdCategoriesIdPutRequest {
     'name': string;
 }
+export interface AdminOfficesOfficeIdCategoriesPostRequest {
+    'name': string;
+    'spotsName': string;
+    'spot_count': number;
+}
 export interface AdminOfficesOfficeIdParkingSpotsGet200ResponseInner {
-    'id'?: number;
     'number'?: string;
     'category'?: string;
     'available'?: boolean;
 }
 export interface AdminOfficesPostRequest {
     'address': string;
-}
-export interface AdminParkingSpotsIdStatusPatch200Response {
-    'id'?: number;
-    'number'?: string;
-    'available'?: boolean;
-}
-export interface AdminParkingSpotsIdStatusPatchRequest {
-    /**
-     * true - место доступно для бронирования, false - место заблокировано
-     */
-    'available': boolean;
 }
 export interface AdminParkingSpotsPostRequest {
     'number': string;
@@ -56,6 +59,7 @@ export interface AdminUsersGet200ResponseInner {
     'email'?: string;
     'name'?: string;
     'licensePlate'?: string;
+    'role'?: string;
 }
 export interface AdminUsersIdPutRequest {
     'name'?: string;
@@ -68,17 +72,12 @@ export interface AdminUsersIdResetPasswordPost200Response {
      */
     'newPassword'?: string;
 }
-export interface AdminUsersPost201Response {
-    'id'?: number;
-    'name'?: string;
-    'licensePlate'?: string;
-    'email'?: string;
-    'password'?: string;
-}
 export interface AdminUsersPostRequest {
     'email': string;
     'name': string;
     'licensePlate': string;
+    'password': string;
+    'role'?: string | null;
 }
 export interface AuthLoginPost200Response {
     /**
@@ -113,17 +112,18 @@ export interface BookingsMyGet200ResponseInner {
     'endTime'?: string;
 }
 export interface BookingsPostRequest {
-    'spotId': number;
+    'officeId': number;
+    'categoryId': number;
+    'number': string;
     'startTime': string;
     'endTime': string;
 }
 export interface BookingsSearchPost200ResponseInner {
-    'spotId'?: number;
     'number'?: string;
-    'category'?: string;
 }
 export interface BookingsSearchPostRequest {
     'officeId': number;
+    'categoryId': number;
     'startTime': string;
     'endTime': string;
 }
@@ -134,6 +134,7 @@ export interface OfficesGet200ResponseInner {
 export interface OfficesOfficeIdCategoriesGet200ResponseInner {
     'id'?: number;
     'name'?: string;
+    'spot_count'?: number;
 }
 
 /**
@@ -142,17 +143,16 @@ export interface OfficesOfficeIdCategoriesGet200ResponseInner {
 export const AdminApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
-         * @summary Delete category
-         * @param {number} id 
+         * Блокирование места.
+         * @summary Spot blocking
+         * @param {BookingsPostRequest} bookingsPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        adminCategoriesIdDelete: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('adminCategoriesIdDelete', 'id', id)
-            const localVarPath = `/admin/categories/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+        adminBookingsForcePost: async (bookingsPostRequest: BookingsPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'bookingsPostRequest' is not null or undefined
+            assertParamExists('adminBookingsForcePost', 'bookingsPostRequest', bookingsPostRequest)
+            const localVarPath = `/admin/bookings/force`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -160,7 +160,7 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -168,6 +168,119 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(bookingsPostRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Получение инфы о заблокированном месте.
+         * @summary blocked spot information
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminBookingsGetinfoPost: async (adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'adminParkingSpotsPostRequest' is not null or undefined
+            assertParamExists('adminBookingsGetinfoPost', 'adminParkingSpotsPostRequest', adminParkingSpotsPostRequest)
+            const localVarPath = `/admin/bookings/getinfo`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(adminParkingSpotsPostRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Разблокировка места.
+         * @summary Spot unblocking
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminBookingsUnblockPost: async (adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'adminParkingSpotsPostRequest' is not null or undefined
+            assertParamExists('adminBookingsUnblockPost', 'adminParkingSpotsPostRequest', adminParkingSpotsPostRequest)
+            const localVarPath = `/admin/bookings/unblock`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(adminParkingSpotsPostRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Генерация случайного пароля на сервере
+         * @summary Generate random password
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminGeneratePasswordPost: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/admin/generate-password`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            localVarHeaderParameter['Accept'] = 'application/json';
 
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -251,6 +364,93 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(adminOfficesPostRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
+         * @summary Delete category
+         * @param {number} officeId 
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminOfficesOfficeIdCategoriesIdDelete: async (officeId: number, id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'officeId' is not null or undefined
+            assertParamExists('adminOfficesOfficeIdCategoriesIdDelete', 'officeId', officeId)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('adminOfficesOfficeIdCategoriesIdDelete', 'id', id)
+            const localVarPath = `/admin/offices/{officeId}/categories/{id}`
+                .replace(`{${"officeId"}}`, encodeURIComponent(String(officeId)))
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Обновление категории. Только для администратора.
+         * @summary Update category
+         * @param {number} officeId ID офиса
+         * @param {number} id Номер категории
+         * @param {AdminOfficesOfficeIdCategoriesIdPutRequest} adminOfficesOfficeIdCategoriesIdPutRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminOfficesOfficeIdCategoriesIdPut: async (officeId: number, id: number, adminOfficesOfficeIdCategoriesIdPutRequest: AdminOfficesOfficeIdCategoriesIdPutRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'officeId' is not null or undefined
+            assertParamExists('adminOfficesOfficeIdCategoriesIdPut', 'officeId', officeId)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('adminOfficesOfficeIdCategoriesIdPut', 'id', id)
+            // verify required parameter 'adminOfficesOfficeIdCategoriesIdPutRequest' is not null or undefined
+            assertParamExists('adminOfficesOfficeIdCategoriesIdPut', 'adminOfficesOfficeIdCategoriesIdPutRequest', adminOfficesOfficeIdCategoriesIdPutRequest)
+            const localVarPath = `/admin/offices/{officeId}/categories/{id}`
+                .replace(`{${"officeId"}}`, encodeURIComponent(String(officeId)))
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(adminOfficesOfficeIdCategoriesIdPutRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -364,6 +564,7 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
             localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
 
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -378,15 +579,14 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Удаление парковочного места. Только для администратора.
          * @summary Delete parking spot
-         * @param {number} id 
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        adminParkingSpotsIdDelete: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('adminParkingSpotsIdDelete', 'id', id)
-            const localVarPath = `/admin/parking-spots/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+        adminParkingSpotsDeletePost: async (adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'adminParkingSpotsPostRequest' is not null or undefined
+            assertParamExists('adminParkingSpotsDeletePost', 'adminParkingSpotsPostRequest', adminParkingSpotsPostRequest)
+            const localVarPath = `/admin/parking-spots/delete`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -394,47 +594,7 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearerAuth required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Изменение статуса парковочного места (доступно/заблокировано). Только для администратора.
-         * @summary Update parking spot status
-         * @param {number} id ID парковочного места
-         * @param {AdminParkingSpotsIdStatusPatchRequest} adminParkingSpotsIdStatusPatchRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        adminParkingSpotsIdStatusPatch: async (id: number, adminParkingSpotsIdStatusPatchRequest: AdminParkingSpotsIdStatusPatchRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('adminParkingSpotsIdStatusPatch', 'id', id)
-            // verify required parameter 'adminParkingSpotsIdStatusPatchRequest' is not null or undefined
-            assertParamExists('adminParkingSpotsIdStatusPatch', 'adminParkingSpotsIdStatusPatchRequest', adminParkingSpotsIdStatusPatchRequest)
-            const localVarPath = `/admin/parking-spots/{id}/status`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -443,12 +603,11 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
             localVarHeaderParameter['Content-Type'] = 'application/json';
-            localVarHeaderParameter['Accept'] = 'application/json';
 
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(adminParkingSpotsIdStatusPatchRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(adminParkingSpotsPostRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -669,7 +828,6 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
             localVarHeaderParameter['Content-Type'] = 'application/json';
-            localVarHeaderParameter['Accept'] = 'application/json';
 
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -691,16 +849,54 @@ export const AdminApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = AdminApiAxiosParamCreator(configuration)
     return {
         /**
-         * Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
-         * @summary Delete category
-         * @param {number} id 
+         * Блокирование места.
+         * @summary Spot blocking
+         * @param {BookingsPostRequest} bookingsPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async adminCategoriesIdDelete(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.adminCategoriesIdDelete(id, options);
+        async adminBookingsForcePost(bookingsPostRequest: BookingsPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminBookingsForcePost(bookingsPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminCategoriesIdDelete']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminBookingsForcePost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Получение инфы о заблокированном месте.
+         * @summary blocked spot information
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminBookingsGetinfoPost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminBookingsGetinfoPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminBookingsGetinfoPost(adminParkingSpotsPostRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminBookingsGetinfoPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Разблокировка места.
+         * @summary Spot unblocking
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminBookingsUnblockPost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminBookingsUnblockPost(adminParkingSpotsPostRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminBookingsUnblockPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Генерация случайного пароля на сервере
+         * @summary Generate random password
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminGeneratePasswordPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminGeneratePasswordPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminGeneratePasswordPost(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminGeneratePasswordPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -728,6 +924,35 @@ export const AdminApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.adminOfficesIdPut(id, adminOfficesPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AdminApi.adminOfficesIdPut']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
+         * @summary Delete category
+         * @param {number} officeId 
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminOfficesOfficeIdCategoriesIdDelete(officeId: number, id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminOfficesOfficeIdCategoriesIdDelete(officeId, id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminOfficesOfficeIdCategoriesIdDelete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Обновление категории. Только для администратора.
+         * @summary Update category
+         * @param {number} officeId ID офиса
+         * @param {number} id Номер категории
+         * @param {AdminOfficesOfficeIdCategoriesIdPutRequest} adminOfficesOfficeIdCategoriesIdPutRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminOfficesOfficeIdCategoriesIdPut(officeId: number, id: number, adminOfficesOfficeIdCategoriesIdPutRequest: AdminOfficesOfficeIdCategoriesIdPutRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminOfficesOfficeIdCategoriesIdPut(officeId, id, adminOfficesOfficeIdCategoriesIdPutRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminOfficesOfficeIdCategoriesIdPut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -764,7 +989,7 @@ export const AdminApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async adminOfficesPost(adminOfficesPostRequest: AdminOfficesPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async adminOfficesPost(adminOfficesPostRequest: AdminOfficesPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OfficesGet200ResponseInner>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.adminOfficesPost(adminOfficesPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AdminApi.adminOfficesPost']?.[localVarOperationServerIndex]?.url;
@@ -773,28 +998,14 @@ export const AdminApiFp = function(configuration?: Configuration) {
         /**
          * Удаление парковочного места. Только для администратора.
          * @summary Delete parking spot
-         * @param {number} id 
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async adminParkingSpotsIdDelete(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.adminParkingSpotsIdDelete(id, options);
+        async adminParkingSpotsDeletePost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminParkingSpotsDeletePost(adminParkingSpotsPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminParkingSpotsIdDelete']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Изменение статуса парковочного места (доступно/заблокировано). Только для администратора.
-         * @summary Update parking spot status
-         * @param {number} id ID парковочного места
-         * @param {AdminParkingSpotsIdStatusPatchRequest} adminParkingSpotsIdStatusPatchRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async adminParkingSpotsIdStatusPatch(id: number, adminParkingSpotsIdStatusPatchRequest: AdminParkingSpotsIdStatusPatchRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminParkingSpotsIdStatusPatch200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.adminParkingSpotsIdStatusPatch(id, adminParkingSpotsIdStatusPatchRequest, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminParkingSpotsIdStatusPatch']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminParkingSpotsDeletePost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -869,7 +1080,7 @@ export const AdminApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async adminUsersPost(adminUsersPostRequest: AdminUsersPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminUsersPost201Response>> {
+        async adminUsersPost(adminUsersPostRequest: AdminUsersPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.adminUsersPost(adminUsersPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AdminApi.adminUsersPost']?.[localVarOperationServerIndex]?.url;
@@ -885,14 +1096,43 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
     const localVarFp = AdminApiFp(configuration)
     return {
         /**
-         * Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
-         * @summary Delete category
-         * @param {number} id 
+         * Блокирование места.
+         * @summary Spot blocking
+         * @param {BookingsPostRequest} bookingsPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        adminCategoriesIdDelete(id: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.adminCategoriesIdDelete(id, options).then((request) => request(axios, basePath));
+        adminBookingsForcePost(bookingsPostRequest: BookingsPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.adminBookingsForcePost(bookingsPostRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Получение инфы о заблокированном месте.
+         * @summary blocked spot information
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminBookingsGetinfoPost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<AdminBookingsGetinfoPost200Response> {
+            return localVarFp.adminBookingsGetinfoPost(adminParkingSpotsPostRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Разблокировка места.
+         * @summary Spot unblocking
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminBookingsUnblockPost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.adminBookingsUnblockPost(adminParkingSpotsPostRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Генерация случайного пароля на сервере
+         * @summary Generate random password
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminGeneratePasswordPost(options?: RawAxiosRequestConfig): AxiosPromise<AdminGeneratePasswordPost200Response> {
+            return localVarFp.adminGeneratePasswordPost(options).then((request) => request(axios, basePath));
         },
         /**
          * Удаление офиса. Только для администратора.
@@ -914,6 +1154,29 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
          */
         adminOfficesIdPut(id: number, adminOfficesPostRequest: AdminOfficesPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.adminOfficesIdPut(id, adminOfficesPostRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
+         * @summary Delete category
+         * @param {number} officeId 
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminOfficesOfficeIdCategoriesIdDelete(officeId: number, id: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.adminOfficesOfficeIdCategoriesIdDelete(officeId, id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Обновление категории. Только для администратора.
+         * @summary Update category
+         * @param {number} officeId ID офиса
+         * @param {number} id Номер категории
+         * @param {AdminOfficesOfficeIdCategoriesIdPutRequest} adminOfficesOfficeIdCategoriesIdPutRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminOfficesOfficeIdCategoriesIdPut(officeId: number, id: number, adminOfficesOfficeIdCategoriesIdPutRequest: AdminOfficesOfficeIdCategoriesIdPutRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.adminOfficesOfficeIdCategoriesIdPut(officeId, id, adminOfficesOfficeIdCategoriesIdPutRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Создание новой категории парковочных мест для указанного офиса. Только для администратора.
@@ -943,29 +1206,18 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        adminOfficesPost(adminOfficesPostRequest: AdminOfficesPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        adminOfficesPost(adminOfficesPostRequest: AdminOfficesPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<OfficesGet200ResponseInner> {
             return localVarFp.adminOfficesPost(adminOfficesPostRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Удаление парковочного места. Только для администратора.
          * @summary Delete parking spot
-         * @param {number} id 
+         * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        adminParkingSpotsIdDelete(id: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.adminParkingSpotsIdDelete(id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Изменение статуса парковочного места (доступно/заблокировано). Только для администратора.
-         * @summary Update parking spot status
-         * @param {number} id ID парковочного места
-         * @param {AdminParkingSpotsIdStatusPatchRequest} adminParkingSpotsIdStatusPatchRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        adminParkingSpotsIdStatusPatch(id: number, adminParkingSpotsIdStatusPatchRequest: AdminParkingSpotsIdStatusPatchRequest, options?: RawAxiosRequestConfig): AxiosPromise<AdminParkingSpotsIdStatusPatch200Response> {
-            return localVarFp.adminParkingSpotsIdStatusPatch(id, adminParkingSpotsIdStatusPatchRequest, options).then((request) => request(axios, basePath));
+        adminParkingSpotsDeletePost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.adminParkingSpotsDeletePost(adminParkingSpotsPostRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Создание нового парковочного места. Только для администратора.
@@ -1024,7 +1276,7 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        adminUsersPost(adminUsersPostRequest: AdminUsersPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<AdminUsersPost201Response> {
+        adminUsersPost(adminUsersPostRequest: AdminUsersPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.adminUsersPost(adminUsersPostRequest, options).then((request) => request(axios, basePath));
         },
     };
@@ -1035,14 +1287,46 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
  */
 export class AdminApi extends BaseAPI {
     /**
-     * Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
-     * @summary Delete category
-     * @param {number} id 
+     * Блокирование места.
+     * @summary Spot blocking
+     * @param {BookingsPostRequest} bookingsPostRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public adminCategoriesIdDelete(id: number, options?: RawAxiosRequestConfig) {
-        return AdminApiFp(this.configuration).adminCategoriesIdDelete(id, options).then((request) => request(this.axios, this.basePath));
+    public adminBookingsForcePost(bookingsPostRequest: BookingsPostRequest, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminBookingsForcePost(bookingsPostRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Получение инфы о заблокированном месте.
+     * @summary blocked spot information
+     * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public adminBookingsGetinfoPost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminBookingsGetinfoPost(adminParkingSpotsPostRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Разблокировка места.
+     * @summary Spot unblocking
+     * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public adminBookingsUnblockPost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminBookingsUnblockPost(adminParkingSpotsPostRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Генерация случайного пароля на сервере
+     * @summary Generate random password
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public adminGeneratePasswordPost(options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminGeneratePasswordPost(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1066,6 +1350,31 @@ export class AdminApi extends BaseAPI {
      */
     public adminOfficesIdPut(id: number, adminOfficesPostRequest: AdminOfficesPostRequest, options?: RawAxiosRequestConfig) {
         return AdminApiFp(this.configuration).adminOfficesIdPut(id, adminOfficesPostRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Удаление категории. Только для администратора (удаляются и все места, связанные с ней).
+     * @summary Delete category
+     * @param {number} officeId 
+     * @param {number} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public adminOfficesOfficeIdCategoriesIdDelete(officeId: number, id: number, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminOfficesOfficeIdCategoriesIdDelete(officeId, id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Обновление категории. Только для администратора.
+     * @summary Update category
+     * @param {number} officeId ID офиса
+     * @param {number} id Номер категории
+     * @param {AdminOfficesOfficeIdCategoriesIdPutRequest} adminOfficesOfficeIdCategoriesIdPutRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public adminOfficesOfficeIdCategoriesIdPut(officeId: number, id: number, adminOfficesOfficeIdCategoriesIdPutRequest: AdminOfficesOfficeIdCategoriesIdPutRequest, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminOfficesOfficeIdCategoriesIdPut(officeId, id, adminOfficesOfficeIdCategoriesIdPutRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1105,24 +1414,12 @@ export class AdminApi extends BaseAPI {
     /**
      * Удаление парковочного места. Только для администратора.
      * @summary Delete parking spot
-     * @param {number} id 
+     * @param {AdminParkingSpotsPostRequest} adminParkingSpotsPostRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public adminParkingSpotsIdDelete(id: number, options?: RawAxiosRequestConfig) {
-        return AdminApiFp(this.configuration).adminParkingSpotsIdDelete(id, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Изменение статуса парковочного места (доступно/заблокировано). Только для администратора.
-     * @summary Update parking spot status
-     * @param {number} id ID парковочного места
-     * @param {AdminParkingSpotsIdStatusPatchRequest} adminParkingSpotsIdStatusPatchRequest 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public adminParkingSpotsIdStatusPatch(id: number, adminParkingSpotsIdStatusPatchRequest: AdminParkingSpotsIdStatusPatchRequest, options?: RawAxiosRequestConfig) {
-        return AdminApiFp(this.configuration).adminParkingSpotsIdStatusPatch(id, adminParkingSpotsIdStatusPatchRequest, options).then((request) => request(this.axios, this.basePath));
+    public adminParkingSpotsDeletePost(adminParkingSpotsPostRequest: AdminParkingSpotsPostRequest, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminParkingSpotsDeletePost(adminParkingSpotsPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

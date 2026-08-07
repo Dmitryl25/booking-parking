@@ -10,6 +10,7 @@ import com.example.demo.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,14 +33,14 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new RuntimeException("User with this email already exists");
         }
 
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setFullName(request.getFullName());
-        user.setCarNum(request.getNumCar());
+        user.setFullName(request.getName());
+        user.setCarNum(request.getLicensePlate());
 
         if (request.getRole() != null && !request.getRole().isEmpty()) {
             user.setRole(request.getRole());
@@ -57,25 +58,30 @@ public class AuthService {
 
 
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+        try{
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            String email = authentication.getName();
+            String role = authentication.getAuthorities().iterator().next().getAuthority();
 
-        String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole());
-        String refreshToken = jwtUtil.generateRefreshToken(user.getEmail(), user.getRole());
+            String accessToken = jwtUtil.generateAccessToken(email, role);
+            String refreshToken = jwtUtil.generateRefreshToken(email, role);
 
-        return new AuthResponse(accessToken, refreshToken);
+            return new AuthResponse(accessToken, refreshToken);
+        }
+        catch (Exception e){
+            throw new RuntimeException("Invalid credentials");
+        }
     }
 
 
     public AuthResponse refreshToken(RefreshTokenRequest request) {
-        String refreshToken = request.getRefreshToken();
+        String refreshToken = request.getRefresh_token();
 
         if (!jwtUtil.validateRefreshToken(refreshToken)) {
             throw new RuntimeException("Invalid or expired refresh token");
@@ -88,6 +94,7 @@ public class AuthService {
 
         String newAccessToken = jwtUtil.generateAccessToken(email, user.getRole());
         String newRefreshToken = jwtUtil.generateRefreshToken(email, user.getRole());
+
 
         return new AuthResponse(newAccessToken, newRefreshToken);
     }

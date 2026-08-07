@@ -6,6 +6,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **officeId** | **number** |  | [default to undefined]
+**categoryId** | **number** |  | [default to undefined]
 **startTime** | **string** |  | [default to undefined]
 **endTime** | **string** |  | [default to undefined]
 
@@ -16,6 +17,7 @@ import { BookingsSearchPostRequest } from './api';
 
 const instance: BookingsSearchPostRequest = {
     officeId,
+    categoryId,
     startTime,
     endTime,
 };

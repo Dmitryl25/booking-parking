@@ -8,6 +8,8 @@ Name | Type | Description | Notes
 **email** | **string** |  | [default to undefined]
 **name** | **string** |  | [default to undefined]
 **licensePlate** | **string** |  | [default to undefined]
+**password** | **string** |  | [default to undefined]
+**role** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -18,6 +20,8 @@ const instance: AdminUsersPostRequest = {
     email,
     name,
     licensePlate,
+    password,
+    role,
 };
 ```
 
